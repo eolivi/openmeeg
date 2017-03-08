@@ -70,7 +70,7 @@
                 return(NULL);
             }
 
-            std::cerr << "VV = " << *vec << std::endl;
+            std::cerr << "VV = " << *vec << std::endl; /* TODO */
 
             /* array object */
             PyArrayObject* matarray = 0;

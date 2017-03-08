@@ -20,18 +20,6 @@
 # OPEN - Open MPI library
 # SGI - SGI MPT Library
 
-set(MKL_ARCH_DIR "ia32")
-if (${CMAKE_SIZEOF_VOID_P} EQUAL 8)
-    set(MKL_ARCH_DIR "intel64")
-endif()
-
-if (FORCE_BUILD_32BITS)
-    set(MKL_ARCH_DIR "ia32")
-endif()
-
-set(MKL_THREAD_VARIANTS SEQUENTIAL GNUTHREAD INTELTHREAD)
-set(MKL_MODE_VARIANTS ILP LP)
-set(MKL_MPI_VARIANTS NOMPI INTELMPI OPENMPI SGIMPT)
 
 #set(CMAKE_FIND_DEBUG_MODE 1)
 
@@ -47,17 +35,13 @@ set(MKL_POSSIBLE_LOCATIONS
     "C:/Program Files/Intel/Composer XE 2013/mkl"
     "C:/Program Files (x86)/Intel/Composer XE 2015/mkl/"
     "C:/Program Files/Intel/Composer XE 2015/mkl/"
+    "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/mkl/"
 )
 
-foreach (i ${MKL_POSSIBLE_LOCATIONS})
-    if (EXISTS ${i}/include/mkl_cblas.h)
-        set(MKL_ROOT_DIR ${i})
-        break()
-    endif()
-endforeach()
-
-#   Does This work at all ?
+# get the MKL ROOT
 find_path(MKL_ROOT_DIR NAMES include/mkl_cblas.h PATHS ${MKL_POSSIBLE_LOCATIONS})
+# from symlinks to real paths
+get_filename_component(MKL_ROOT_DIR ${MKL_ROOT_DIR} REALPATH)
 
 if (NOT MKL_ROOT_DIR)
     if (MKL_FIND_REQUIRED)
@@ -66,105 +50,197 @@ if (NOT MKL_ROOT_DIR)
         unset(MKL_ROOT_DIR CACHE)
     endif()
 else()
-    find_path(MKL_INCLUDE_DIR mkl_cblas.h PATHS ${MKL_ROOT_DIR}/include ${INCLUDE_INSTALL_DIR})
+    set(MKL_INCLUDE_DIR ${MKL_ROOT_DIR}/include)
 
-    find_path(MKL_FFTW_INCLUDE_DIR fftw3.h PATH_SUFFIXES fftw PATHS ${MKL_ROOT_DIR}/include ${INCLUDE_INSTALL_DIR} NO_DEFAULT_PATH)
+    set(MKL_LIB_SEARCHPATH $ENV{ICC_LIB_DIR} $ENV{MKL_LIB_DIR} "${MKL_ROOT_DIR}/lib/${MKL_ARCH_DIR}" "${MKL_ROOT_DIR}/../compiler" "${MKL_ROOT_DIR}/../compiler/lib/${MKL_ARCH_DIR}")
+
+    # user defined options
+    option(MKL_USE_parallel "Use MKL parallel" True)
+    option(MKL_USE_sdl "Single Dynamic Library or static/dynamic" False)
+    # option(MKL_USE_ILP64 "Support very large data arrays" False)
+
+    # set arguments to call the MKL provided tool for linking
+	set(COMMANDE ${MKL_ROOT_DIR}/tools/mkl_link_tool)
 
     if (WIN32)
-        set(MKL_LIB_SEARCHPATH $ENV{ICC_LIB_DIR} $ENV{MKL_LIB_DIR} "${MKL_ROOT_DIR}/lib/${MKL_ARCH_DIR}" "${MKL_ROOT_DIR}/../compiler" "${MKL_ROOT_DIR}/../compiler/lib/${MKL_ARCH_DIR}")
-
-        if (MKL_INCLUDE_DIR MATCHES "10.")
-            set(MKL_LIBS mkl_solver mkl_core mkl_intel_c mkl_intel_s mkl_intel_thread libguide mkl_lapack95 mkl_blas95)
-            if (CMAKE_CL_64)
-                set(MKL_LIBS mkl_solver_lp64 mkl_core mkl_intel_lp64 mkl_intel_thread libguide mkl_lapack95_lp64 mkl_blas95_lp64)
-            endif()
-        elseif(MKL_INCLUDE_DIR MATCHES "2013") # version 11 ...
-            set(MKL_LIBS mkl_core mkl_intel_c mkl_intel_s mkl_intel_thread libiomp5md mkl_lapack95 mkl_blas95)
-            if (CMAKE_CL_64)
-                set(MKL_LIBS mkl_core mkl_intel_lp64 mkl_intel_thread libiomp5md mkl_lapack95_lp64 mkl_blas95_lp64)
-            endif()
-        elseif(MKL_INCLUDE_DIR MATCHES "2015")
-            if(CMAKE_CL_64)
-                SET(MKL_LIBS mkl_intel_lp64 mkl_core mkl_intel_thread mkl_lapack95_lp64 mkl_blas95_lp64 )
-            else()
-                SET(MKL_LIBS mkl_intel_c mkl_core mkl_intel_thread mkl_lapack95 mkl_blas95 )
-            endif()
-        else() # old MKL 9
-            set(MKL_LIBS mkl_solver mkl_c libguide mkl_lapack mkl_ia32)
-        endif()
-
-        if (MKL_INCLUDE_DIR MATCHES "10.3")
-            set(MKL_LIBS ${MKL_LIBS} libiomp5md)
-        endif()
-
-        foreach (LIB ${MKL_LIBS})
-            find_library(${LIB}_PATH ${LIB} PATHS ${MKL_LIB_SEARCHPATH} ENV LIBRARY_PATH)
-            if (${LIB}_PATH)
-                set(MKL_LIBRARIES ${MKL_LIBRARIES} ${${LIB}_PATH})
-            else()
-                message(FATAL_ERROR "Could not find ${LIB}: disabling MKL")
-                BREAK()
-            endif()
-        endforeach()
-        set(MKL_FOUND ON)
-
-    else() # UNIX and macOS
-
-        set(MKL_LIBRARY_LOCATIONS ${MKL_ROOT_DIR}/lib/${MKL_ARCH_DIR} ${MKL_ROOT_DIR}/lib)
-
-        find_library(MKL_CORE_LIBRARY mkl_core PATHS ${MKL_LIBRARY_LOCATIONS})
-
-        # Threading libraries
-
-        find_library(MKL_RT_LIBRARY mkl_rt PATHS ${MKL_LIBRARY_LOCATIONS})
-        find_library(MKL_SEQUENTIAL_LIBRARY mkl_sequential PATHS ${MKL_LIBRARY_LOCATIONS})
-        find_library(MKL_INTELTHREAD_LIBRARY mkl_intel_thread PATHS ${MKL_LIBRARY_LOCATIONS})
-        find_library(MKL_GNUTHREAD_LIBRARY mkl_gnu_thread PATHS ${MKL_LIBRARY_LOCATIONS})
-
-        # Intel Libraries
-
-        if (NOT "${MKL_ARCH_DIR}" STREQUAL "ia32")
-            set(INTEL_LP_SUFFIX  "_lp64")
-            set(INTEL_ILP_SUFFIX "_ilp64")
-        endif()
-
-        find_library(MKL_LP_LIBRARY mkl_intel%{INTEL_LP_SUFFIX} PATHS ${MKL_LIBRARY_LOCATIONS})
-        find_library(MKL_ILP_LIBRARY mkl_intel${INTEL_ILP_SUFFIX} PATHS ${MKL_LIBRARY_LOCATIONS})
-
-        # Lapack
-
-        find_library(MKL_LAPACK_LIBRARY mkl_lapack PATHS ${MKL_LIBRARY_LOCATIONS})
-
-        if (NOT MKL_LAPACK_LIBRARY)
-            find_library(MKL_LAPACK_LIBRARY mkl_lapack95_lp64 PATHS ${MKL_LIBRARY_LOCATIONS})
-        endif()
-
-        # iomp5
-
-        if (UNIX AND NOT APPLE)
-            find_library(MKL_IOMP5_LIBRARY iomp5 PATHS ${MKL_ROOT_DIR}/../lib/${MKL_ARCH_DIR})
-        endif()
-
-        foreach (MODEVAR ${MKL_MODE_VARIANTS})
-            foreach (THREADVAR ${MKL_THREAD_VARIANTS})
-                if (MKL_CORE_LIBRARY AND MKL_${MODEVAR}_LIBRARY AND MKL_${THREADVAR}_LIBRARY)
-                    set(MKL_${MODEVAR}_${THREADVAR}_LIBRARIES
-                        ${MKL_${MODEVAR}_LIBRARY} ${MKL_${THREADVAR}_LIBRARY} ${MKL_CORE_LIBRARY}
-                        ${MKL_LAPACK_LIBRARY} ${MKL_IOMP5_LIBRARY})
-                    message("${MODEVAR} ${THREADVAR} ${MKL_${MODEVAR}_${THREADVAR}_LIBRARIES}") # for debug
-                endif()
-            endforeach()
-        endforeach()
-
-        set(MKL_LIBRARIES ${MKL_RT_LIBRARY})
-        mark_as_advanced(MKL_CORE_LIBRARY MKL_LP_LIBRARY MKL_ILP_LIBRARY
-            MKL_SEQUENTIAL_LIBRARY MKL_INTELTHREAD_LIBRARY MKL_GNUTHREAD_LIBRARY)
+        set(COMMANDE ${MKL_ROOT_DIR}/tools/mkl_link_tool.exe)
+    endif()
+    
+    # check that the tools exists or quit
+    if (NOT EXISTS "${COMMANDE}")
+        message(FATAL_ERROR "cannot find MKL tool: ${COMMANDE}")
     endif()
 
-    #link_directories(${MKL_ROOT_DIR}/lib/${MKL_ARCH_DIR}) # hack
+    # first the libs
+    list(APPEND COMMANDE  "-libs")
+
+    # possible versions
+    # <11.3|11.2|11.1|11.0|10.3|10.2|10.1|10.0|ParallelStudioXE2016|ParallelStudioXE2015|ComposerXE2013SP1|ComposerXE2013|ComposerXE2011|CompilerPro>
+
+    # not older than MKL 10 (2011)
+    if (MKL_INCLUDE_DIR MATCHES "Composer.*2013")
+        list(APPEND COMMANDE  "--mkl=ComposerXE2013")
+    elseif (MKL_INCLUDE_DIR MATCHES "Composer.*2011")
+        list(APPEND COMMANDE  "--mkl=ComposerXE2011")
+    elseif (MKL_INCLUDE_DIR MATCHES "10.3")
+        list(APPEND COMMANDE  "--mkl=10.3")
+    elseif(MKL_INCLUDE_DIR MATCHES "2013") # version 11 ...
+        list(APPEND COMMANDE  "--mkl=11.1")
+    elseif(MKL_INCLUDE_DIR MATCHES "2015")
+        list(APPEND COMMANDE  "--mkl=11.2")
+    elseif(MKL_INCLUDE_DIR MATCHES "2016")
+        list(APPEND COMMANDE  "--mkl=11.3")
+    elseif(MKL_INCLUDE_DIR MATCHES "2017")
+        list(APPEND COMMANDE  "--mkl=11.3")
+    elseif (MKL_INCLUDE_DIR MATCHES "10")
+        list(APPEND COMMANDE  "--mkl=10.2")
+    else()
+        list(APPEND COMMANDE "--mkl=11.3")
+    endif()
+
+    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+        list(APPEND COMMANDE "--compiler=clang")
+	elseif(("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel") OR ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC"))
+		list(APPEND COMMANDE "--compiler=intel_c")
+	else()
+		list(APPEND COMMANDE "--compiler=gnu_c")
+    endif()
+
+    if (APPLE)
+        list(APPEND COMMANDE "--os=mac")
+    elseif(WIN32)
+        list(APPEND COMMANDE "--os=win")
+    else()
+        list(APPEND COMMANDE "--os=lnx")
+    endif()
+
+	set(MKL_LIB_DIR)
+    if (${CMAKE_SIZEOF_VOID_P} EQUAL 8 AND NOT FORCE_BUILD_32BITS)
+        list(APPEND COMMANDE "--arch=intel64")
+		set(MKL_LIB_DIR "intel64/")
+    else()
+        list(APPEND COMMANDE "--arch=ia-32")
+		set(MKL_LIB_DIR "ia-32/")
+    endif()
+
+    if (MKL_USE_sdl)
+        list(APPEND COMMANDE "--linking=sdl")
+        set(MKL_USE_parallel False CACHE BOOL "disabled by MKL_USE_sdl" FORCE)
+    else()
+        if (NOT BUILD_SHARED_LIBS_OpenMEEG)
+            list(APPEND COMMANDE "--linking=static")
+        else()
+            list(APPEND COMMANDE "--linking=dynamic")
+        endif()
+        if (MKL_USE_parallel)
+            list(APPEND COMMANDE "--parallel=yes")
+        else()
+            list(APPEND COMMANDE "--parallel=no")
+        endif()
+
+        if (FORCE_BUILD_32BITS)
+            list(APPEND COMMANDE "--interface=cdecl")
+        else()
+            #if (MKL_USE_ILP64)
+            #    list(APPEND COMMANDE "--interface=ilp64")
+            #else()
+            list(APPEND COMMANDE "--interface=lp64")
+            #endif()
+        endif()
+
+        if (MKL_USE_parallel)
+            if (USE_OMP)
+                list(APPEND COMMANDE "--openmp=gomp")
+            else()
+                list(APPEND COMMANDE "--threading-library=iomp5")
+                list(APPEND COMMANDE "--openmp=iomp5")
+            endif()
+        endif()
+    endif()
+
+    execute_process(COMMAND ${COMMANDE} OUTPUT_VARIABLE TMP_VAR TIMEOUT 2)
+
+    set(MKL_LIBRARIES)
+
+    if (WIN32)
+		# remove unwanted break
+		string(REGEX REPLACE "\n" "" TMP_VAR ${TMP_VAR})
+
+		# get the list of libs
+		set(MKL_CXX_FLAGS)
+		separate_arguments(TMP_VAR)
+		foreach(i ${TMP_VAR})
+            message("i=${i}")
+			if (i MATCHES "lib")
+				list(APPEND MKL_LIBRARIES ${MKL_ROOT_DIR}/lib/${MKL_LIB_DIR}${i})
+			elseif (i MATCHES "/Qopenmp")
+				list(APPEND MKL_LIBRARIES ${MKL_ROOT_DIR}/../compiler/lib/${MKL_LIB_DIR}libiomp5md.lib)
+				list(APPEND MKL_CXX_FLAGS ${i})
+			endif()
+		endforeach()
+
+
+		list(APPEND CMAKE_CXX_FLAGS ${MKL_CXX_FLAGS})
+		message(".....................MKL_CXX_FLAGS = ..${MKL_CXX_FLAGS}. \n.......MKL_LIBRARIES..${MKL_LIBRARIES}.\n...........................TMP_VAR ${TMP_VAR}.")
+
+		# now definitions
+		STRING(REPLACE "-libs" "-opts" COMMANDE "${COMMANDE}")
+		execute_process(COMMAND ${COMMANDE} OUTPUT_VARIABLE TMP_VAR TIMEOUT 2)
+		message("..........COMMANDE =.......${COMMANDE}...................................................................TMP_VAR ${TMP_VAR}.")
+
+    else() # UNIX and macOS
+		# remove unwanted break
+		string(REGEX REPLACE "\n" "" TMP_VAR ${TMP_VAR}) 
+
+        if (COMMANDE MATCHES "static")
+            string(REPLACE "$(MKLROOT)" "${MKL_ROOT_DIR}" MKL_LIBRARIES ${TMP_VAR})
+            separate_arguments(MKL_LIBRARIES)
+            message("--> ${MKL_LIBRARIES}")
+
+        else() # dynamic or sdl
+
+            # get the lib dirs
+            message("-----> : ${TMP_VAR}")
+            string(REGEX REPLACE "^.*-L[^/]+([^\ ]+).*" "${MKL_ROOT_DIR}\\1" INTEL_LIB_DIR ${TMP_VAR})
+
+            # get the list of libs
+            separate_arguments(TMP_VAR)
+
+            # set full path to libs
+            foreach(i ${TMP_VAR})
+                string(REGEX REPLACE " -" "-" i ${i})
+                string(REGEX REPLACE "-l([^\ ]+)" "\\1" i ${i})
+                string(REGEX REPLACE "-L.*" "" i ${i})
+                find_library(TMP_VAR3 ${i} PATHS ${INTEL_LIB_DIR} "${MKL_ROOT_DIR}/../compiler/lib/${MKL_LIB_DIR}")
+                if (TMP_VAR3)
+                    list(APPEND MKL_LIBRARIES ${TMP_VAR3})
+                elseif(i)
+                    list(APPEND MKL_LIBRARIES ${i})
+                endif()
+                unset(TMP_VAR3 CACHE)
+                message("----> ${i} : ${TMP_VAR3}")
+            endforeach()
+
+        endif()
+
+		# now definitions
+		string(REPLACE "-libs" "-opts" COMMANDE "${COMMANDE}")
+		execute_process(COMMAND ${COMMANDE} OUTPUT_VARIABLE TMP_VAR TIMEOUT 2)
+		string(REGEX REPLACE "\ -I.*" "" TMP_VAR ${TMP_VAR})
+		string(REGEX REPLACE "^\ " "" TMP_VAR ${TMP_VAR})
+
+		message("..........COMMANDE =.......${COMMANDE}......................MKL_LIBRARIES.${MKL_LIBRARIES}............................................TMP_VAR ${TMP_VAR}.")
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${MKL_CXX_FLAGS}")
+    endif()
+
+    add_definitions(${TMP_VAR})
+
+    message("..enfin..........COMMANDE =.......${COMMANDE}...................TMP_VAR ${TMP_VAR}.")
 
     include(FindPackageHandleStandardArgs)
     find_package_handle_standard_args(MKL DEFAULT_MSG MKL_INCLUDE_DIR MKL_LIBRARIES)
 
-    mark_as_advanced(MKL_INCLUDE_DIR MKL_LIBRARIES)
+    mark_as_advanced(MKL_CORE_LIBRARY MKL_LP_LIBRARY MKL_ILP_LIBRARY
+        MKL_SEQUENTIAL_LIBRARY MKL_INTELTHREAD_LIBRARY MKL_GNUTHREAD_LIBRARY MKL_INCLUDE_DIR
+        MKL_LIBRARIES)
 endif()
