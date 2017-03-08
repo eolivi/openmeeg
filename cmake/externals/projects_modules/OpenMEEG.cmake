@@ -34,6 +34,8 @@ function(OpenMEEG_project)
         -DUSE_VTK:BOOL=${USE_VTK}
         -DUSE_GIFTI:BOOL=${USE_GIFTI}
         -DUSE_CGAL:BOOL=${USE_CGAL}
+        -DMKL_USE_sdl:BOOL=${MKL_USE_sdl}
+        -DMKL_USE_parallel:BOOL=${MKL_USE_parallel}
         -DUSE_PROGRESSBAR:BOOL=${USE_PROGRESSBAR}
         -DENABLE_PACKAGING:BOOL=${ENABLE_PACKAGING}
         -DENABLE_PYTHON:BOOL=${ENABLE_PYTHON}
