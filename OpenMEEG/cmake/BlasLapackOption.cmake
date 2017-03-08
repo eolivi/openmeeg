@@ -48,7 +48,7 @@ if (${CMAKE_PROJECT_NAME} STREQUAL "OpenMEEG" OR LAPACK_LIBRARIES)
     message(STATUS "Lapack package: ${LAPACK}: ${LAPACK_LIBRARIES}")
 
     # Detect Fortran to C interface.
-    if (NOT USE_MKL AND NOT WIN32)
+    if (NOT USE_MKL AND NOT WIN32 AND NOT USE_OPENBLAS)
         include(FortranCInterface)
         FortranCInterface_HEADER(FC.h MACRO_NAMESPACE "FC_" FROM_LIBRARY blas[daxpy] HINTS ${lapack_DIR}/lib)
     endif()
