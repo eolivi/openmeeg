@@ -57,6 +57,7 @@ else()
     # user defined options
     option(MKL_USE_parallel "Use MKL parallel" True)
     option(MKL_USE_sdl "Single Dynamic Library or static/dynamic" False)
+    option(MKL_USE_interface "for Intel(R)64 compatible arch: lp64 or for ia32 arch: cdecl or stdcall" "lp64")
     # option(MKL_USE_ILP64 "Support very large data arrays" False)
 
     # set arguments to call the MKL provided tool for linking
@@ -114,10 +115,13 @@ else()
         list(APPEND COMMANDE "--os=lnx")
     endif()
 
+	set(MKL_LIB_DIR)
     if (${CMAKE_SIZEOF_VOID_P} EQUAL 8 AND NOT FORCE_BUILD_32BITS)
         list(APPEND COMMANDE "--arch=intel64")
+		set(MKL_LIB_DIR "intel64/")
     else()
         list(APPEND COMMANDE "--arch=ia-32")
+		set(MKL_LIB_DIR "ia-32/")
     endif()
 
     if (MKL_USE_sdl)
@@ -137,12 +141,9 @@ else()
 
         if (FORCE_BUILD_32BITS)
             list(APPEND COMMANDE "--interface=cdecl")
+            set(MKL_USE_interface "cdecl" CACHE STRING "disabled by FORCE_BUILD_32BITS" FORCE)
         else()
-            #if (MKL_USE_ILP64)
-            #    list(APPEND COMMANDE "--interface=ilp64")
-            #else()
-            list(APPEND COMMANDE "--interface=lp64")
-            #endif()
+            list(APPEND COMMANDE "--interface=${MKL_USE_interface}")
         endif()
 
         if (MKL_USE_parallel)
@@ -167,13 +168,15 @@ else()
 		set(MKL_CXX_FLAGS)
 		separate_arguments(TMP_VAR)
 		foreach(i ${TMP_VAR})
-		message("i=${i}")
+            message("i=${i}")
 			if (i MATCHES "lib")
-				list(APPEND MKL_LIBRARIES ${MKL_ROOT_DIR}/lib/${iA}/${i})
-			elseif (i MATCHES "/Q")
+				list(APPEND MKL_LIBRARIES ${MKL_ROOT_DIR}/lib/${MKL_LIB_DIR}${i})
+			elseif (i MATCHES "/Qopenmp")
+				list(APPEND MKL_LIBRARIES ${MKL_ROOT_DIR}/../compiler/lib/${MKL_LIB_DIR}libiomp5md.lib)
 				list(APPEND MKL_CXX_FLAGS ${i})
 			endif()
 		endforeach()
+
 		list(APPEND CMAKE_CXX_FLAGS ${MKL_CXX_FLAGS})
 		message(".....................MKL_CXX_FLAGS = ..${MKL_CXX_FLAGS}. \n.......MKL_LIBRARIES..${MKL_LIBRARIES}.\n...........................TMP_VAR ${TMP_VAR}.")
 
@@ -205,11 +208,9 @@ else()
                 string(REGEX REPLACE " -" "-" i ${i})
                 string(REGEX REPLACE "-l([^\ ]+)" "\\1" i ${i})
                 string(REGEX REPLACE "-L.*" "" i ${i})
-                if (COMMANDE MATCHES "intel64")
-                    find_library(TMP_VAR3 ${i} PATHS ${INTEL_LIB_DIR} "${MKL_ROOT_DIR}/../compiler/lib/intel64")
-                else()
-                    find_library(TMP_VAR3 ${i} PATHS ${INTEL_LIB_DIR} "${MKL_ROOT_DIR}/../compiler/lib/ia-32")
-                endif()
+
+                find_library(TMP_VAR3 ${i} PATHS ${INTEL_LIB_DIR} "${MKL_ROOT_DIR}/../compiler/lib/${MKL_LIB_DIR}")
+
                 if (TMP_VAR3)
                     list(APPEND MKL_LIBRARIES ${TMP_VAR3})
                 elseif(i)
@@ -224,13 +225,15 @@ else()
 		# now definitions
 		string(REPLACE "-libs" "-opts" COMMANDE "${COMMANDE}")
 		execute_process(COMMAND ${COMMANDE} OUTPUT_VARIABLE TMP_VAR TIMEOUT 2)
-		string(REGEX REPLACE "\ -I.*" "" TMP_VAR ${TMP_VAR})
+		string(REGEX REPLACE "\ -I[^\ ]+" "" TMP_VAR ${TMP_VAR})
 		string(REGEX REPLACE "^\ " "" TMP_VAR ${TMP_VAR})
 
 		message("..........COMMANDE =.......${COMMANDE}......................MKL_LIBRARIES.${MKL_LIBRARIES}............................................TMP_VAR ${TMP_VAR}.")
+
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${MKL_CXX_FLAGS}")
+
     endif()
 
-    #set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}")
     add_definitions(${TMP_VAR})
 
     message("..enfin..........COMMANDE =.......${COMMANDE}...................TMP_VAR ${TMP_VAR}.")
