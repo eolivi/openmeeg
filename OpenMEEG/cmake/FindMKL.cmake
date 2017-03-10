@@ -114,6 +114,7 @@ else()
         list(APPEND COMMANDE "--os=lnx")
     endif()
 
+<<<<<<< HEAD
 	set(MKL_LIB_DIR)
     if (${CMAKE_SIZEOF_VOID_P} EQUAL 8 AND NOT FORCE_BUILD_32BITS)
         list(APPEND COMMANDE "--arch=intel64")
@@ -121,6 +122,12 @@ else()
     else()
         list(APPEND COMMANDE "--arch=ia-32")
 		set(MKL_LIB_DIR "ia-32/")
+=======
+    if (${CMAKE_SIZEOF_VOID_P} EQUAL 8 AND NOT FORCE_BUILD_32BITS)
+        list(APPEND COMMANDE "--arch=intel64")
+    else()
+        list(APPEND COMMANDE "--arch=ia-32")
+>>>>>>> 5483c5d181016343b1873ea29882f0ce0f8f3c99
     endif()
 
     if (MKL_USE_sdl)
@@ -211,7 +218,9 @@ else()
                 string(REGEX REPLACE " -" "-" i ${i})
                 string(REGEX REPLACE "-l([^\ ]+)" "\\1" i ${i})
                 string(REGEX REPLACE "-L.*" "" i ${i})
+
                 find_library(TMP_VAR3 ${i} PATHS ${INTEL_LIB_DIR} "${MKL_ROOT_DIR}/../compiler/lib/${MKL_LIB_DIR}")
+
                 if (TMP_VAR3)
                     list(APPEND MKL_LIBRARIES ${TMP_VAR3})
                 elseif(i)
@@ -230,7 +239,9 @@ else()
 		string(REGEX REPLACE "^\ " "" TMP_VAR ${TMP_VAR})
 
 		message("..........COMMANDE =.......${COMMANDE}......................MKL_LIBRARIES.${MKL_LIBRARIES}............................................TMP_VAR ${TMP_VAR}.")
+
         set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${MKL_CXX_FLAGS}")
+
     endif()
 
     add_definitions(${TMP_VAR})
