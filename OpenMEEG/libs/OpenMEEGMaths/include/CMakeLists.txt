@@ -1,7 +1,7 @@
 # install headers
 
 set(OPENMEEGMATHS_HEADERS 
-    DLLDefinesOpenMEEGMaths.h fast_sparse_matrix.h linop.h OpenMEEGMathsConfig.h 
+    fast_sparse_matrix.h linop.h OpenMEEGMathsConfig.h 
     matrix.h symmatrix.h sparse_matrix.h vector.h
     #   These files are imported from another repository.
     #   Please do not update them in this repository.

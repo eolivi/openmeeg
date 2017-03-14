@@ -206,7 +206,7 @@ namespace OpenMEEG {
         SymMatrix invA(*this,DEEP_COPY);
     #ifdef HAVE_LAPACK
         // U'U factorization then inverse
-        int Info = 0;
+        int Info;
         DPPTRF('U',(int)nlin(),invA.data(),Info);
         DPPTRI('U',(int)nlin(),invA.data(),Info);
         om_assert(Info==0);
@@ -301,7 +301,7 @@ namespace OpenMEEG {
     #ifdef HAVE_LAPACK
         SymMatrix invA(*this, DEEP_COPY);
         // LU
-        int *pivots=new int[nlin()];
+        int *pivots = new int[nlin()];
         int Info = 0;
         DSPTRF('U', (int)nlin(), invA.data(), pivots, Info);
         // Inverse
@@ -322,7 +322,7 @@ namespace OpenMEEG {
     inline void SymMatrix::invert() {
     #ifdef HAVE_LAPACK
         // LU
-        int *pivots=new int[nlin()];
+        int *pivots = new int[nlin()];
         int Info = 0;
         DSPTRF('U', (int)nlin(), data(), pivots, Info);
         // Inverse

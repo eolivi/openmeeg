@@ -189,8 +189,9 @@ namespace OpenMEEG {
     inline double Matrix::frobenius_norm() const {
     #ifdef HAVE_LAPACK
     if ( nlin()*ncol() != 0 ) {
-        double work;
-        return DLANGE('F',(int)nlin(),(int)ncol(),data(),(int)nlin(),&work);
+        double Info;
+        return DLANGE('F',(int)nlin(),(int)ncol(),data(),(int)nlin(),&Info);
+        om_assert(Info==0);
     } else {
         return 0;
     }
@@ -307,7 +308,7 @@ namespace OpenMEEG {
         #if defined(CLAPACK_INTERFACE)
             #if defined(__APPLE__) && defined(USE_VECLIB) // Apple Veclib Framework (Handles 32 and 64 Bits)
                 __CLPK_integer *pivots = new __CLPK_integer[ncol()];
-                __CLPK_integer Info=0;
+                __CLPK_integer Info = 0;
                 __CLPK_integer nlin_local = invA.nlin();
                 __CLPK_integer nlin_local2 = invA.nlin();
                 __CLPK_integer ncol_local = invA.ncol();
@@ -319,16 +320,16 @@ namespace OpenMEEG {
                 delete[] work;
                 om_assert(Info==0);
             #else
-                int *pivots=new int[nlin()];
+                int *pivots=new int[ncol()];
                 DGETRF((int)invA.nlin(),(int)invA.ncol(),invA.data(),(int)invA.nlin(),pivots);
                 DGETRI((int)invA.ncol(),invA.data(),(int)invA.ncol(),pivots);
                 delete[] pivots;
             #endif
         #else
             int Info = 0;
-            int *pivots=new int[nlin()];
-            DGETRF((int)invA.nlin(),(int)invA.ncol(),invA.data(),(int)invA.nlin(),pivots,Info);
-            const unsigned sz = (unsigned)invA.ncol()*64;
+            int *pivots=new int[ncol()];
+            DGETRF((int)invA.nlin(),(int)invA.ncol(),invA.data(),invA.nlin(),pivots,Info);
+            const unsigned sz = invA.ncol()*64;
             double *work=new double[sz];
             DGETRI((int)invA.ncol(),invA.data(),(int)invA.ncol(),pivots,work,sz,Info);
             delete[] pivots;

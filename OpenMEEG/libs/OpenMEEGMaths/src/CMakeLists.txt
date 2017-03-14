@@ -1,16 +1,20 @@
-# =============
+# =====================
 # = OpenMEEGMaths Lib =
-# =============
+# =====================
 
 function(create_library libname)
-    add_library(${libname} SHARED ${ARGN})
+    add_library(${libname} ${LIB_TYPE} ${ARGN})
     target_link_libraries(${libname} ${LAPACK_LIBRARIES} ${matio_LIBRARIES})
 
     set_target_properties(${libname} PROPERTIES
                           VERSION 1.1.0
                           SOVERSION 1
-                          INTERFACE_LINK_LIBRARIES "${NeededLibraries}"
+                          #INTERFACE_LINK_LIBRARIES "${NeededLibraries}"
                           CLEAN_DIRECT_OUTPUT 1)
+
+    generate_export_header(${libname}
+        EXPORT_FILE_NAME ${libname}_Export.h
+        STATIC_DEFINE ${libname}_BUILT_AS_STATIC)
 
     install(TARGETS ${libname}
             RUNTIME DESTINATION ${INSTALL_BIN_DIR}

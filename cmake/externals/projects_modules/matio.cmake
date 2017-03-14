@@ -15,7 +15,7 @@ function(matio_project)
 
     # Prepare the project and list dependencies
 
-    EP_Initialisation(matio BUILD_SHARED_LIBS ${BUILD_SHARED})
+    EP_Initialisation(matio BUILD_SHARED_LIBS ON)
     EP_SetDependencies(${ep}_dependencies ${MSINTTYPES} hdf5 zlib)
 
     # Define repository where get the sources

@@ -1,3 +1,7 @@
+# =====================
+# =    OpenMEEG Lib   =
+# =====================
+
 if (NOT HAVE_ISNORMAL_IN_NAMESPACE_STD)
     include(CheckSymbolExists)
     CHECK_SYMBOL_EXISTS(isnormal math.h HAVE_ISNORMAL_IN_MATH_H)
@@ -9,6 +13,10 @@ function(create_library libname)
                           VERSION 1.1.0
                           SOVERSION 1
                           CLEAN_DIRECT_OUTPUT 1)
+
+    generate_export_header(${libname}
+        EXPORT_FILE_NAME ${libname}_Export.h
+        STATIC_DEFINE ${libname}_BUILT_AS_STATIC)
 
     install(TARGETS ${libname}
             RUNTIME DESTINATION ${INSTALL_BIN_DIR}
@@ -22,6 +30,3 @@ set(OpenMEEG_SOURCES
 
 create_library(OpenMEEG ${OpenMEEG_SOURCES})
 target_link_libraries(OpenMEEG PUBLIC OpenMEEGMaths PRIVATE ${OPENMEEG_LIBRARIES} ${LAPACK_LIBRARIES})
-
-#create_library(OpenMEEGInteractive ${OpenMEEG_SOURCES})
-#target_link_libraries(OpenMEEGInteractive OpenMEEGMathsInteractive ${OPENMEEG_LIBRARIES} ${LAPACK_LIBRARIES})
