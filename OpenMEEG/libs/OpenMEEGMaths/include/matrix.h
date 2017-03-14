@@ -189,9 +189,8 @@ namespace OpenMEEG {
     inline double Matrix::frobenius_norm() const {
     #ifdef HAVE_LAPACK
     if ( nlin()*ncol() != 0 ) {
-        double Info;
-        return DLANGE('F',(int)nlin(),(int)ncol(),data(),(int)nlin(),&Info);
-        om_assert(Info==0);
+        double work;
+        return DLANGE('F',(int)nlin(),(int)ncol(),data(),(int)nlin(),&work);
     } else {
         return 0;
     }
