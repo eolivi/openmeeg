@@ -206,7 +206,7 @@ namespace OpenMEEG {
         SymMatrix invA(*this,DEEP_COPY);
     #ifdef HAVE_LAPACK
         // U'U factorization then inverse
-        int Info;
+        int Info = 0;
         DPPTRF('U',(int)nlin(),invA.data(),Info);
         DPPTRI('U',(int)nlin(),invA.data(),Info);
         om_assert(Info==0);

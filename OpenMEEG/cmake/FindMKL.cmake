@@ -52,13 +52,10 @@ if (NOT MKL_ROOT_DIR)
 else()
     set(MKL_INCLUDE_DIR ${MKL_ROOT_DIR}/include)
 
-    set(MKL_LIB_SEARCHPATH $ENV{ICC_LIB_DIR} $ENV{MKL_LIB_DIR} "${MKL_ROOT_DIR}/lib/${MKL_ARCH_DIR}" "${MKL_ROOT_DIR}/../compiler" "${MKL_ROOT_DIR}/../compiler/lib/${MKL_ARCH_DIR}")
-
     # user defined options
     option(MKL_USE_parallel "Use MKL parallel" True)
     option(MKL_USE_sdl "Single Dynamic Library or static/dynamic" False)
-    option(MKL_USE_interface "for Intel(R)64 compatible arch: lp64 or for ia32 arch: cdecl or stdcall" "lp64")
-    # option(MKL_USE_ILP64 "Support very large data arrays" False)
+    set(MKL_USE_interface "lp64" CACHE STRING "for Intel(R)64 compatible arch: lp64 or for ia32 arch: cdecl or stdcall")
 
     # set arguments to call the MKL provided tool for linking
 	set(COMMANDE ${MKL_ROOT_DIR}/tools/mkl_link_tool)
@@ -129,7 +126,7 @@ else()
     if (MKL_USE_sdl)
         list(APPEND COMMANDE "--linking=sdl")
     else()
-        if (NOT BUILD_SHARED_LIBS_OpenMEEG)
+        if (NOT BUILD_SHARED_LIBS)
             list(APPEND COMMANDE "--linking=static")
         else()
             list(APPEND COMMANDE "--linking=dynamic")
@@ -158,9 +155,15 @@ else()
         endif()
     endif()
 
-    execute_process(COMMAND ${COMMANDE} OUTPUT_VARIABLE TMP_VAR TIMEOUT 2)
+    execute_process(COMMAND ${COMMANDE} OUTPUT_VARIABLE TMP_VAR TIMEOUT 2 RESULT_VARIABLE COMMAND_WORKED)
 
     set(MKL_LIBRARIES)
+
+    MESSAGE("--------------- ${COMMAND_WORKED} : TMP_VAR ${TMP_VAR}")
+
+    if (NOT ${COMMAND_WORKED} EQUAL 0)
+        MESSAGE(FATAL_ERROR "Cannot find the MKL libraries correctly. Please check your input variables and mkl_link_tool. Command executed was:\n ${COMMANDE}.")
+    endif()
 
     if (WIN32)
         # remove unwanted break
@@ -195,13 +198,14 @@ else()
 
         if (COMMANDE MATCHES "static")
             string(REPLACE "$(MKLROOT)" "${MKL_ROOT_DIR}" MKL_LIBRARIES ${TMP_VAR})
+            # hack for lin with libiomp5.a
+            string(REPLACE "-liomp5" "${MKL_ROOT_DIR}/../compiler/lib/${MKL_LIB_DIR}/libiomp5.a" MKL_LIBRARIES ${MKL_LIBRARIES})
             separate_arguments(MKL_LIBRARIES)
-            message("--> ${MKL_LIBRARIES}")
+            message("--STATIC--> ${MKL_LIBRARIES}")
 
         else() # dynamic or sdl
-
             # get the lib dirs
-            message("-----> : ${TMP_VAR}")
+            message("--DYN---> : ${TMP_VAR}")
             string(REGEX REPLACE "^.*-L[^/]+([^\ ]+).*" "${MKL_ROOT_DIR}\\1" INTEL_LIB_DIR ${TMP_VAR})
 
             # get the list of libs

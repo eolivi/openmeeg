@@ -64,7 +64,7 @@ knowledge of the CeCILL-B license and that you accept its terms.
         # pragma warning ( disable : 4706 ) /* assignment in conditional expression */
         # pragma warning ( disable : 4710 ) /* function not inlined */
         # pragma warning ( disable : 4786 ) /* identifier truncated in debug info */
-        # pragma warning ( disable : 4244 ) /* possible loss of data ('float' to 'mat_uint32_t') */#endif
+        # pragma warning ( disable : 4244 ) /* possible loss of data ('float' to 'mat_uint32_t') */
         # pragma warning ( disable : 4267 ) /* possible loss of data (size_t to int) */
     #endif
 #endif
