@@ -155,49 +155,40 @@ else()
         endif()
     endif()
 
-    execute_process(COMMAND ${COMMANDE} OUTPUT_VARIABLE TMP_VAR TIMEOUT 2 RESULT_VARIABLE COMMAND_WORKED)
+    execute_process(COMMAND ${COMMANDE} OUTPUT_VARIABLE RESULT_LIBS TIMEOUT 2 RESULT_VARIABLE COMMAND_WORKED)
 
     set(MKL_LIBRARIES)
 
-    MESSAGE("--------------- ${COMMAND_WORKED} : TMP_VAR ${TMP_VAR}")
+    MESSAGE("--------------- ${COMMAND_WORKED} : RESULT_LIBS ${RESULT_LIBS}")
 
     if (NOT ${COMMAND_WORKED} EQUAL 0)
-        MESSAGE(FATAL_ERROR "Cannot find the MKL libraries correctly. Please check your input variables and mkl_link_tool. Command executed was:\n ${COMMANDE}.")
+        MESSAGE(FATAL_ERROR "Cannot find the MKL libraries correctly. Please check your MKL input variables and mkl_link_tool. The command executed was:\n ${COMMANDE}.")
     endif()
 
     if (WIN32)
         # remove unwanted break
-        string(REGEX REPLACE "\n" "" TMP_VAR ${TMP_VAR})
+        string(REGEX REPLACE "\n" "" RESULT_LIBS ${RESULT_LIBS})
 
         # get the list of libs
-        set(MKL_CXX_FLAGS)
-        separate_arguments(TMP_VAR)
-        foreach(i ${TMP_VAR})
+        separate_arguments(RESULT_LIBS)
+        foreach(i ${RESULT_LIBS})
             message("i=${i}")
-            find_library(TMP_VAR3 ${i} PATHS "${MKL_ROOT_DIR}/lib/${MKL_LIB_DIR}/" "${MKL_ROOT_DIR}/../compiler/lib/${MKL_LIB_DIR}")
+            find_library(FULLPATH_LIB ${i} PATHS "${MKL_ROOT_DIR}/lib/${MKL_LIB_DIR}/" "${MKL_ROOT_DIR}/../compiler/lib/${MKL_LIB_DIR}")
 
-            if (TMP_VAR3)
-                list(APPEND MKL_LIBRARIES ${TMP_VAR3})
+            if (FULLPATH_LIB)
+                list(APPEND MKL_LIBRARIES ${FULLPATH_LIB})
             elseif(i)
                 list(APPEND MKL_LIBRARIES ${i})
             endif()
-            unset(TMP_VAR3 CACHE)
+            unset(FULLPATH_LIB CACHE)
         endforeach()
-
-        list(APPEND CMAKE_CXX_FLAGS ${MKL_CXX_FLAGS})
-        message(".....................MKL_CXX_FLAGS = ..${MKL_CXX_FLAGS}. \n.MKL_LIBRARIES..${MKL_LIBRARIES}.\nTMP_VAR............................. ${TMP_VAR}.")
-
-        # now definitions
-        # STRING(REPLACE "-libs" "-opts" COMMANDE "${COMMANDE}")
-        # execute_process(COMMAND ${COMMANDE} OUTPUT_VARIABLE TMP_VAR TIMEOUT 2)
-        # message("..........COMMANDE =.......${COMMANDE}.................TMP_VAR ${TMP_VAR}.")
 
     else() # UNIX and macOS
         # remove unwanted break
-		string(REGEX REPLACE "\n" "" TMP_VAR ${TMP_VAR}) 
+		string(REGEX REPLACE "\n" "" RESULT_LIBS ${RESULT_LIBS}) 
 
         if (COMMANDE MATCHES "static")
-            string(REPLACE "$(MKLROOT)" "${MKL_ROOT_DIR}" MKL_LIBRARIES ${TMP_VAR})
+            string(REPLACE "$(MKLROOT)" "${MKL_ROOT_DIR}" MKL_LIBRARIES ${RESULT_LIBS})
             # hack for lin with libiomp5.a
             string(REPLACE "-liomp5" "${MKL_ROOT_DIR}/../compiler/lib/${MKL_LIB_DIR}/libiomp5.a" MKL_LIBRARIES ${MKL_LIBRARIES})
             separate_arguments(MKL_LIBRARIES)
@@ -205,46 +196,44 @@ else()
 
         else() # dynamic or sdl
             # get the lib dirs
-            message("--DYN---> : ${TMP_VAR}")
-            string(REGEX REPLACE "^.*-L[^/]+([^\ ]+).*" "${MKL_ROOT_DIR}\\1" INTEL_LIB_DIR ${TMP_VAR})
+            message("--DYN---> : ${RESULT_LIBS}")
+            string(REGEX REPLACE "^.*-L[^/]+([^\ ]+).*" "${MKL_ROOT_DIR}\\1" INTEL_LIB_DIR ${RESULT_LIBS})
 
             # get the list of libs
-            separate_arguments(TMP_VAR)
+            separate_arguments(RESULT_LIBS)
 
             # set full path to libs
-            foreach(i ${TMP_VAR})
+            foreach(i ${RESULT_LIBS})
                 string(REGEX REPLACE " -" "-" i ${i})
                 string(REGEX REPLACE "-l([^\ ]+)" "\\1" i ${i})
                 string(REGEX REPLACE "-L.*" "" i ${i})
 
-                find_library(TMP_VAR3 ${i} PATHS ${INTEL_LIB_DIR} "${MKL_ROOT_DIR}/../compiler/lib/${MKL_LIB_DIR}")
+                find_library(FULLPATH_LIB ${i} PATHS ${INTEL_LIB_DIR} "${MKL_ROOT_DIR}/../compiler/lib/${MKL_LIB_DIR}")
 
-                if (TMP_VAR3)
-                    list(APPEND MKL_LIBRARIES ${TMP_VAR3})
+                if (FULLPATH_LIB)
+                    list(APPEND MKL_LIBRARIES ${FULLPATH_LIB})
                 elseif(i)
                     list(APPEND MKL_LIBRARIES ${i})
                 endif()
-                unset(TMP_VAR3 CACHE)
-                message("----> ${i} : ${TMP_VAR3}")
+                unset(FULLPATH_LIB CACHE)
+                message("----> ${i} : ${FULLPATH_LIB}")
             endforeach()
 
         endif()
 
 		# now definitions
 		string(REPLACE "-libs" "-opts" COMMANDE "${COMMANDE}")
-		execute_process(COMMAND ${COMMANDE} OUTPUT_VARIABLE TMP_VAR TIMEOUT 2)
-		string(REGEX REPLACE "\ -I[^\ ]+" "" TMP_VAR ${TMP_VAR})
-		string(REGEX REPLACE "^\ " "" TMP_VAR ${TMP_VAR})
-
-		message("..........COMMANDE =.......${COMMANDE}......................MKL_LIBRARIES.${MKL_LIBRARIES}............................................TMP_VAR ${TMP_VAR}.")
-
-        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} ${MKL_CXX_FLAGS}")
-
+		execute_process(COMMAND ${COMMANDE} OUTPUT_VARIABLE RESULT_OPTS TIMEOUT 2)
+		string(REGEX REPLACE "\ -I[^\ ]+" "" RESULT_OPTS ${RESULT_OPTS})
+		string(REGEX REPLACE "^\ " "" RESULT_OPTS ${RESULT_OPTS})
     endif()
 
-    add_definitions(${TMP_VAR})
+    message("..........COMMANDE =.......${COMMANDE}......................MKL_LIBRARIES.${MKL_LIBRARIES}.............................RESULT_OPTS ${RESULT_OPTS}.")
+    message(".....................MKL_CXX_FLAGS = ..${MKL_CXX_FLAGS}. \n.MKL_LIBRARIES..${MKL_LIBRARIES}.\nTMP_VAR............................. ${RESULT_LIBS}.")
 
-    message("..enfin..........COMMANDE =.......${COMMANDE}...................TMP_VAR ${TMP_VAR}.")
+    add_definitions(${RESULT_OPTS})
+
+    message("..enfin..........COMMANDE =.......${COMMANDE}...................RESULT_OPTS ${RESULT_OPTS}.")
 
     include(FindPackageHandleStandardArgs)
     find_package_handle_standard_args(MKL DEFAULT_MSG MKL_INCLUDE_DIR MKL_LIBRARIES)

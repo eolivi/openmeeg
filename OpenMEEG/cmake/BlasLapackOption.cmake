@@ -16,7 +16,7 @@ endif()
 set(LIST_IMPL "Auto" "MKL" "OpenBLAS" "LAPACK")
 if (APPLE)
     set(LIST_IMPL ${LIST_IMPL} "vecLib")
-else()
+elseif(UNIX)
     set(LIST_IMPL ${LIST_IMPL} "Atlas")
 endif()
 
