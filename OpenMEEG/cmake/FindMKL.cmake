@@ -126,10 +126,10 @@ else()
     if (MKL_USE_sdl)
         list(APPEND COMMANDE "--linking=sdl")
     else()
-        if (NOT BUILD_SHARED_LIBS)
-            list(APPEND COMMANDE "--linking=static")
-        else()
+        if (BUILD_SHARED_LIBS AND NOT WIN32) # force to static linking for WIN32
             list(APPEND COMMANDE "--linking=dynamic")
+        else()
+            list(APPEND COMMANDE "--linking=static")
         endif()
     endif()
 
