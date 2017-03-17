@@ -8,5 +8,6 @@ if (USE_MKL)
         if (UNIX AND NOT APPLE) # MKL on linux requires to link with the pthread library
             set(LAPACK_LIBRARIES ${LAPACK_LIBRARIES} pthread)
         endif()
+        list(APPEND OpenMEEG_DEPENDENCIES MKL)
     endif()
 endif()
