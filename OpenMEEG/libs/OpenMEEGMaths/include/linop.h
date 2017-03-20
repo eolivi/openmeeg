@@ -55,7 +55,7 @@ namespace OpenMEEG {
     // to properly convert a size_t int to an int
     OPENMEEGMATHS_EXPORT inline int sizet_to_int(const size_t& num)
     {
-        int num_out = static_cast<int>(num);
+        T num_out = static_cast<T>(num);
         om_assert(num_out >= 0);
         return num_out;
     }
