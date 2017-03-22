@@ -74,13 +74,17 @@ if (ENABLE_PACKAGING)
                 set(PACKAGE_NAME ${PACKAGE_NAME}-OpenMP)
             endif()
 
-            if (BUILD_SHARED_LIBS)
+            if (USE_VTK)
+                set(PACKAGE_NAME ${PACKAGE_NAME}-vtk)
+            endif()
+
+            if (NOT BUILD_SHARED_LIBS)
+                set(PACKAGE_NAME ${PACKAGE_NAME}-static)
+            else()
                 if (ENABLE_PYTHON)
                     set(PACKAGE_NAME ${PACKAGE_NAME}-python)
                 endif()
                 set(PACKAGE_NAME ${PACKAGE_NAME}-shared)
-            else()
-                set(PACKAGE_NAME ${PACKAGE_NAME}-static)
             endif()
 
             set(CPACK_PACKAGE_FILE_NAME ${PACKAGE_NAME})
@@ -98,7 +102,6 @@ if (ENABLE_PACKAGING)
                     "doc/LICENSE.txt" "README.rst"
                     "http://openmeeg.github.io" "OpenMEEG homepage"
                 )
-
             endif()
 
             set(CPACK_SOURCE_STRIP_FILES "")
@@ -129,7 +132,11 @@ if (ENABLE_PACKAGING)
         endif()
     endif()
 
-    if (WIN32)
-        include(UseWin32dlls)
+    if (ENABLE_PACKAGING AND WIN32)
+        set(CMAKE_INSTALL_OPENMP_LIBRARIES False)
+        if (USE_OMP)
+            set(CMAKE_INSTALL_OPENMP_LIBRARIES True)
+        endif()
+        include(InstallRequiredSystemLibraries)
     endif()
 endif()
