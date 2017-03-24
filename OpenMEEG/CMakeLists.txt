@@ -175,7 +175,6 @@ endif()
 
 include(Uninstall)
 include(KWStyle)
-include(Packaging)
 
 #######################################################################
 # Help other projects use OpenMEEG
@@ -208,7 +207,7 @@ install(EXPORT OpenMEEGTargets DESTINATION "${INSTALL_CMAKE_DIR}"
     COMPONENT DevelopmentCOMPONENT)
 
 # Install README
-install(FILES ${PROJECT_SOURCE_DIR}/LICENSE.txt
+install(FILES ${PROJECT_SOURCE_DIR}/../LICENSE.txt
     ${PROJECT_SOURCE_DIR}/../README.rst
     DESTINATION ${INSTALL_DATA_DIR}/doc/OpenMEEG)
 

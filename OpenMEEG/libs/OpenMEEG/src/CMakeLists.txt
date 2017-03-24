@@ -9,6 +9,9 @@ endif()
 
 function(create_library libname)
     add_library(${libname} ${LIB_TYPE} ${ARGN})
+    if (LAPACK_DEFINITIONS)
+        target_compile_definitions(${libname} PUBLIC ${LAPACK_DEFINITIONS})
+    endif()
     set_target_properties(${libname} PROPERTIES
                           VERSION 1.1.0
                           SOVERSION 1
@@ -23,6 +26,9 @@ function(create_library libname)
             RUNTIME DESTINATION ${INSTALL_BIN_DIR}
             LIBRARY DESTINATION ${INSTALL_LIB_DIR}
             ARCHIVE DESTINATION ${INSTALL_LIB_DIR})
+
+    install(FILES ${CMAKE_CURRENT_BINARY_DIR}/${libname}_Export.h
+            DESTINATION ${OpenMEEG_HEADER_INSTALLDIR} COMPONENT Development)
 endfunction()
 
 set(OpenMEEG_SOURCES 

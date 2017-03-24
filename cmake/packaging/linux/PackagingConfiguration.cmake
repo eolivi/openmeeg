@@ -41,7 +41,7 @@ set(CPACK_GENERATOR "TGZ;${CPACK_GENERATOR}")
 
 #   Remember the linux packaging source dir
 
-set(CURRENT_SRC_DIR ${CMAKE_SOURCE_DIR}/packaging/linux)
+set(CURRENT_SRC_DIR ${CMAKE_CURRENT_LIST_DIR})
 set(CURRENT_BIN_DIR ${CMAKE_BINARY_DIR}/packaging/linux)
 
 #   include settings specific to DEB and RPM

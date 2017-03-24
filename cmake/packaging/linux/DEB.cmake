@@ -10,7 +10,7 @@
 ################################################################################
 
 set(CPACK_GENERATOR "${CPACK_GENERATOR};DEB")
-set(CPACK_DEBIAN_PACKAGE_HOMEPAGE http://openmeeg.gforge.inria.fr)
+set(CPACK_DEBIAN_PACKAGE_HOMEPAGE http://openmeeg.github.io)
 set(CPACK_DEBIAN_PACKAGE_NAME ${CPACK_PACKAGE_NAME})
 set(CPACK_DEBIAN_PACKAGE_PROVIDES ${CPACK_PACKAGE_NAME})
 set(CPACK_DEBIAN_PACKAGE_VERSION ${CPACK_PACKAGE_VERSION})

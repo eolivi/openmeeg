@@ -5,8 +5,8 @@ if (GIT_HTTPS)
 endif()
 
 # Option: do we want a static or a dynamic build ?
-option(BUILD_SHARED "Build shared libs for all subprojects" ON)
-mark_as_advanced(BUILD_SHARED)
+option(BUILD_SHARED_LIBS "Build shared libs for all subprojects" ON)
+mark_as_advanced(BUILD_SHARED_LIBS)
 
 #   Various OpenMEEG options that will be forwarded.
 

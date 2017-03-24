@@ -100,8 +100,8 @@ rm -rf %{srcdirname}
 %{_docdir}/OpenMEEG/*
 
 %changelog
-- Support added for MKL on all platforms, and OpenBLAS on Linux and MacOsX
+- Support added for MKL and OpenBLAS on all platforms
 - Support for non nested geometries
 - Support for CGAL meshing tools, VTK formats
-- Adding Cortical Gain Matrices computations
+- Adding Cortical Gain matrices and EIT Gain matrices computations
 - Bug fixes, adding more tests

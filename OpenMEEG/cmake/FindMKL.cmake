@@ -5,7 +5,9 @@
 #  MKL_ROOT_DIR - path to the MKL base directory
 #  MKL_INCLUDE_DIR - the MKL include directory
 #  MKL_LIBRARIES - MKL libraries
+#  MKL_LIBRARY_DIR - MKL library dir (for dlls!)
 #
+# we use mkl_link_tool to get the library needed depending on variables
 # There are few sets of libraries:
 # Array indexes modes:
 # LP - 32 bit indexes of arrays
@@ -22,6 +24,8 @@
 
 
 #set(CMAKE_FIND_DEBUG_MODE 1)
+# unset this variable defined in matio
+unset(MSVC)
 
 set(MKL_POSSIBLE_LOCATIONS
     $ENV{MKLDIR}
@@ -51,11 +55,6 @@ if (NOT MKL_ROOT_DIR)
     endif()
 else()
     set(MKL_INCLUDE_DIR ${MKL_ROOT_DIR}/include)
-
-    # user defined options
-    option(MKL_USE_parallel "Use MKL parallel" True)
-    option(MKL_USE_sdl "Single Dynamic Library or static/dynamic" False)
-    set(MKL_USE_interface "lp64" CACHE STRING "for Intel(R)64 compatible arch: lp64 or for ia32 arch: cdecl or stdcall")
 
     # set arguments to call the MKL provided tool for linking
 	set(COMMANDE ${MKL_ROOT_DIR}/tools/mkl_link_tool)
@@ -96,11 +95,11 @@ else()
         list(APPEND COMMANDE "--mkl=11.3")
     endif()
 
-    if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
         list(APPEND COMMANDE "--compiler=clang")
-	elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+	elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
 		list(APPEND COMMANDE "--compiler=intel_c")
-	elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+	elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 		list(APPEND COMMANDE "--compiler=ms_c")
 	else()
 		list(APPEND COMMANDE "--compiler=gnu_c")
@@ -155,25 +154,26 @@ else()
         endif()
     endif()
 
-    execute_process(COMMAND ${COMMANDE} OUTPUT_VARIABLE RESULT_LIBS TIMEOUT 2 RESULT_VARIABLE COMMAND_WORKED)
+    execute_process(COMMAND ${COMMANDE} OUTPUT_VARIABLE RESULT_LIBS TIMEOUT 2 RESULT_VARIABLE COMMAND_WORKED ERROR_QUIET)
 
     set(MKL_LIBRARIES)
-
-    MESSAGE("--------------- ${COMMAND_WORKED} : RESULT_LIBS ${RESULT_LIBS}")
 
     if (NOT ${COMMAND_WORKED} EQUAL 0)
         MESSAGE(FATAL_ERROR "Cannot find the MKL libraries correctly. Please check your MKL input variables and mkl_link_tool. The command executed was:\n ${COMMANDE}.")
     endif()
 
+    set(MKL_LIBRARY_DIR)
+
     if (WIN32)
+        set(MKL_LIBRARY_DIR "${MKL_ROOT_DIR}/lib/${MKL_LIB_DIR}/" "${MKL_ROOT_DIR}/../compiler/lib/${MKL_LIB_DIR}")
+
         # remove unwanted break
         string(REGEX REPLACE "\n" "" RESULT_LIBS ${RESULT_LIBS})
 
         # get the list of libs
         separate_arguments(RESULT_LIBS)
         foreach(i ${RESULT_LIBS})
-            message("i=${i}")
-            find_library(FULLPATH_LIB ${i} PATHS "${MKL_ROOT_DIR}/lib/${MKL_LIB_DIR}/" "${MKL_ROOT_DIR}/../compiler/lib/${MKL_LIB_DIR}")
+            find_library(FULLPATH_LIB ${i} PATHS "${MKL_LIBRARY_DIR}")
 
             if (FULLPATH_LIB)
                 list(APPEND MKL_LIBRARIES ${FULLPATH_LIB})
@@ -186,18 +186,16 @@ else()
     else() # UNIX and macOS
         # remove unwanted break
 		string(REGEX REPLACE "\n" "" RESULT_LIBS ${RESULT_LIBS}) 
-
         if (COMMANDE MATCHES "static")
             string(REPLACE "$(MKLROOT)" "${MKL_ROOT_DIR}" MKL_LIBRARIES ${RESULT_LIBS})
             # hack for lin with libiomp5.a
             string(REPLACE "-liomp5" "${MKL_ROOT_DIR}/../compiler/lib/${MKL_LIB_DIR}/libiomp5.a" MKL_LIBRARIES ${MKL_LIBRARIES})
             separate_arguments(MKL_LIBRARIES)
-            message("--STATIC--> ${MKL_LIBRARIES}")
 
         else() # dynamic or sdl
             # get the lib dirs
-            message("--DYN---> : ${RESULT_LIBS}")
             string(REGEX REPLACE "^.*-L[^/]+([^\ ]+).*" "${MKL_ROOT_DIR}\\1" INTEL_LIB_DIR ${RESULT_LIBS})
+            set(MKL_LIBRARY_DIR ${INTEL_LIB_DIR} "${MKL_ROOT_DIR}/../compiler/lib/${MKL_LIB_DIR}")
 
             # get the list of libs
             separate_arguments(RESULT_LIBS)
@@ -208,7 +206,7 @@ else()
                 string(REGEX REPLACE "-l([^\ ]+)" "\\1" i ${i})
                 string(REGEX REPLACE "-L.*" "" i ${i})
 
-                find_library(FULLPATH_LIB ${i} PATHS ${INTEL_LIB_DIR} "${MKL_ROOT_DIR}/../compiler/lib/${MKL_LIB_DIR}")
+                find_library(FULLPATH_LIB ${i} PATHS "${MKL_LIBRARY_DIR}")
 
                 if (FULLPATH_LIB)
                     list(APPEND MKL_LIBRARIES ${FULLPATH_LIB})
@@ -216,29 +214,23 @@ else()
                     list(APPEND MKL_LIBRARIES ${i})
                 endif()
                 unset(FULLPATH_LIB CACHE)
-                message("----> ${i} : ${FULLPATH_LIB}")
             endforeach()
-
         endif()
 
-		# now definitions
-		string(REPLACE "-libs" "-opts" COMMANDE "${COMMANDE}")
-		execute_process(COMMAND ${COMMANDE} OUTPUT_VARIABLE RESULT_OPTS TIMEOUT 2)
-		string(REGEX REPLACE "\ -I[^\ ]+" "" RESULT_OPTS ${RESULT_OPTS})
-		string(REGEX REPLACE "^\ " "" RESULT_OPTS ${RESULT_OPTS})
     endif()
+    # now definitions
+    string(REPLACE "-libs" "-opts" COMMANDE "${COMMANDE}")
+    execute_process(COMMAND ${COMMANDE} OUTPUT_VARIABLE RESULT_OPTS TIMEOUT 2 ERROR_QUIET)
+    string(REGEX MATCHALL "[-/]D[^\ ]*" MKL_DEFINITIONS ${RESULT_OPTS})
 
-    message("..........COMMANDE =.......${COMMANDE}......................MKL_LIBRARIES.${MKL_LIBRARIES}.............................RESULT_OPTS ${RESULT_OPTS}.")
-    message(".....................MKL_CXX_FLAGS = ..${MKL_CXX_FLAGS}. \n.MKL_LIBRARIES..${MKL_LIBRARIES}.\nTMP_VAR............................. ${RESULT_LIBS}.")
-
-    add_definitions(${RESULT_OPTS})
-
-    message("..enfin..........COMMANDE =.......${COMMANDE}...................RESULT_OPTS ${RESULT_OPTS}.")
+    if (CMAKE_FIND_DEBUG_MODE)
+        message("Exectuted command: \n${COMMANDE}")
+        message("Found MKL_LIBRARIES:\n${MKL_LIBRARIES} ")
+        message("Found MKL_DEFINITIONS:\n${MKL_DEFINITIONS} ")
+    endif()
 
     include(FindPackageHandleStandardArgs)
     find_package_handle_standard_args(MKL DEFAULT_MSG MKL_INCLUDE_DIR MKL_LIBRARIES)
 
-    mark_as_advanced(MKL_CORE_LIBRARY MKL_LP_LIBRARY MKL_ILP_LIBRARY
-        MKL_SEQUENTIAL_LIBRARY MKL_INTELTHREAD_LIBRARY MKL_GNUTHREAD_LIBRARY MKL_INCLUDE_DIR
-        MKL_LIBRARIES)
+    mark_as_advanced(MKL_INCLUDE_DIR MKL_LIBRARIES MKL_DEFINITIONS MKL_ROOT_DIR)
 endif()

@@ -5,12 +5,17 @@
 option(USE_CGAL "Use CGAL meshing tools" OFF)
 
 if (USE_CGAL)
-    # find_package(CGAL REQUIRED COMPONENTS Core OPTIONAL_COMPONENTS ImageIO) <- cannot since CGAL do not support OPTIONAL_COMPONENTS
+
+    # what components do we want:
+    set(CGAL_FIND_COMPONENTS Core)
+    mark_as_advanced(CGAL_FIND_COMPONENTS)
+
     find_package(CGAL QUIET COMPONENTS ImageIO)
+    # find_package(CGAL REQUIRED COMPONENTS Core OPTIONAL_COMPONENTS ImageIO) <- cannot since CGAL do not support OPTIONAL_COMPONENTS
     if (CGAL_FOUND) # for hanling images (.inr format only for the moment!)
         set(CGAL_LIBRARIES CGAL::CGAL_ImageIO)
     else()
-        find_package(CGAL REQUIRED COMPONENTS Core)
+        find_package(CGAL REQUIRED COMPONENTS ${CGAL_FIND_COMPONENTS})
         if (CGAL_FOUND)
             set(CGAL_LIBRARIES CGAL::CGAL_Core)
         else()
