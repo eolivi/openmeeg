@@ -37,7 +37,8 @@ SWIG_LINK_LIBRARIES(${MODULE_NAME} ${PYTHON_LIBRARIES} OpenMEEG ${LAPACK_LIBRARI
 execute_process(COMMAND ${PYTHON_EXECUTABLE} "-c" "from distutils.sysconfig import get_python_lib; print get_python_lib(1)"
              OUTPUT_VARIABLE PYTHON_SITE_ARCH
              RESULT_VARIABLE PYTHON_SITEARCH_NOT_FOUND)
-string(REGEX REPLACE "^.*/(lib|lib64)(/python.*)$" "\\1\\2" PYTHON_REL_SITE_ARCH ${PYTHON_SITE_ARCH})
+#extract correctly python location: e.g lib64/python2.7/site-packages
+string(REGEX MATCH "lib.*packages" PYTHON_REL_SITE_ARCH ${PYTHON_SITE_ARCH})
 
 install(TARGETS  "_${MODULE_NAME}"
         LIBRARY DESTINATION ${PYTHON_REL_SITE_ARCH}

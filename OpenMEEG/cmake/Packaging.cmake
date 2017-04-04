@@ -32,11 +32,12 @@ if (ENABLE_PACKAGING)
             include(InstallRequiredSystemLibraries)
 
             set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "OpenMEEG Project")
+            set(CPACK_PACKAGE_DESCRIPTION "A C++ package for low-frequency bio-electromagnetism solving forward problems in the field of EEG and MEG.")
             set(CPACK_PACKAGE_VENDOR "INRIA-ENPC")
             set(CPACK_PACKAGE_DESCRIPTION_FILE "${OpenMEEG_SOURCE_DIR}/../README.rst")
-            set(CPACK_RESOURCE_FILE_LICENSE "${OpenMEEG_SOURCE_DIR}/LICENSE.txt")
-            set(CPACK_PACKAGE_INSTALL_DIRECTORY "OpenMEEG")
+            set(CPACK_RESOURCE_FILE_LICENSE "${OpenMEEG_SOURCE_DIR}/../LICENSE.txt")
             set(CPACK_PACKAGE_CONTACT "openmeeg-info_at_lists.gforge.inria.fr")
+            set(CPACK_PACKAGE_INSTALL_DIRECTORY "OpenMEEG")
 
             if ("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
                 set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE amd64)
@@ -94,11 +95,7 @@ if (ENABLE_PACKAGING)
                 set(CPACK_NSIS_CONTACT "openmeeg-info@lists.gforge.inria.fr")
                 set(CPACK_NSIS_MODIFY_PATH ON)
                 set(CPACK_PACKAGE_EXECUTABLES "om_assemble" "OpenMEEG (Ignore)")
-                set(CPACK_NSIS_MENU_LINKS
-                    "doc/LICENSE.txt" "README.rst"
-                    "http://openmeeg.github.io" "OpenMEEG homepage"
-                )
-
+                set(CPACK_NSIS_MENU_LINKS "doc/LICENSE.txt" "README.rst" "http://openmeeg.github.io" "OpenMEEG homepage")
             endif()
 
             set(CPACK_SOURCE_STRIP_FILES "")
@@ -127,9 +124,5 @@ if (ENABLE_PACKAGING)
                 endif()
             endif()
         endif()
-    endif()
-
-    if (WIN32)
-        include(UseWin32dlls)
     endif()
 endif()

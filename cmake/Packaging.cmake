@@ -9,6 +9,7 @@ if (ENABLE_PACKAGING)
 
     set(CPACK_PACKAGE_NAME "OpenMEEG")
     set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "OpenMEEG Project")
+    set(CPACK_PACKAGE_DESCRIPTION "A C++ package for low-frequency bio-electromagnetism solving forward problems in the field of EEG and MEG.")
     set(CPACK_PACKAGE_VENDOR "INRIA-ENPC")
     set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
     set(CPACK_PACKAGE_DESCRIPTION_FILE "${PROJECT_SOURCE_DIR}/README.rst")
@@ -17,9 +18,9 @@ if (ENABLE_PACKAGING)
     set(CPACK_PACKAGE_INSTALL_DIRECTORY "OpenMEEG")
     set(CPACK_SOURCE_STRIP_FILES "")
 
+    # set platform specific variables
     if (UNIX)
-        set(CPACK_SET_DESTDIR true)
-        set(CPACK_INSTALL_PREFIX "Packaging")
+        #set(CPACK_SET_DESTDIR ON) <-- needed for TGZ
         set(SYSTEMDIR linux)
         if (APPLE)
             set(SYSTEMDIR apple)
@@ -29,23 +30,22 @@ if (ENABLE_PACKAGING)
         set(CPACK_INSTALL_PREFIX "")
         set(SYSTEMDIR windows)
     endif()
+
     include(${SYSTEMDIR}/PackagingConfiguration)
 
-    set(PACKAGE_OPTIONS ${BLASLAPACK_IMPLEMENATION})
+    set(PACKAGE_OPTIONS ${PACKAGE_NAME}-${BLASLAPACK_IMPLEMENTATION})
 
     if (USE_OMP)
-        set(PACKAGE_OPTIONS ${PACKAGE_NAME}-OpenMP)
+        set(PACKAGE_OPTIONS ${PACKAGE_OPTIONS}-OpenMP)
     endif()
 
     if (USE_VTK)
-        set(PACKAGE_OPTIONS ${PACKAGE_NAME}-vtk)
+        set(PACKAGE_OPTIONS ${PACKAGE_OPTIONS}-vtk)
     endif()
 
     if (ENABLE_PYTHON)
         set(PACKAGE_OPTIONS ${PACKAGE_OPTIONS}-python)
     endif()
-
-    set(PACKAGE_OPTIONS ${PACKAGE_OPTIONS}-${BLASLAPACK_IMPLEMENTATION})
 
     if (BUILD_SHARED_LIBS)
         set(PACKAGE_OPTIONS ${PACKAGE_OPTIONS}-shared)

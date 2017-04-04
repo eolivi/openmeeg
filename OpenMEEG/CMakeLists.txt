@@ -16,12 +16,12 @@ set(PACKAGE_VERSION_MAJOR "2")
 set(PACKAGE_VERSION_MINOR "3")
 set(PACKAGE_VERSION_PATCH "dev")
 
-#   The second path is temporary untill these are integrated in cmake...
+# The second path is temporary untill these are integrated in cmake...
 
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_SOURCE_DIR}/cmake/FortranCInterface)
 
-#   The next two lines are a kludge to make rpm generation work. If you change this,
-#   please check that rpm generation still works.
+# The next two lines are a kludge to make rpm generation work. If you change this,
+# please check that rpm generation still works.
 
 set(CPACK_PACKAGE_VERSION_MAJOR ${PACKAGE_VERSION_MAJOR})
 set(CPACK_PACKAGE_VERSION_MINOR ${PACKAGE_VERSION_MINOR})
@@ -175,6 +175,7 @@ endif()
 
 include(Uninstall)
 include(KWStyle)
+include(Packaging)
 
 #######################################################################
 # Help other projects use OpenMEEG

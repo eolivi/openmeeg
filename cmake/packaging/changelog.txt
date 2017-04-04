@@ -1,0 +1,6 @@
+* Mon Apr 3 2017 <openmeeg-info@lists.gforge.inria.fr> 2.3.0.2
+- Support added for MKL and OpenBLAS on all platforms
+- Support for non nested geometries
+- Support for CGAL meshing tools, VTK formats
+- Adding Cortical Gain matrices and EIT Gain matrices computations
+- Bug fixes, adding more tests

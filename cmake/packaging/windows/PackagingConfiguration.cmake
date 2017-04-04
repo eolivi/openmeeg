@@ -40,7 +40,7 @@ set(CPACK_NSIS_CONTACT ${CPACK_PACKAGE_CONTACT})
 
 #   Dealing with the icon.
 
-set(ICON_PATH "${PROJECT_SOURCE_DIR}/packaging/openmeeg.ico")
+set(ICON_PATH "${PROJECT_SOURCE_DIR}/cmake/packaging/openmeeg.ico")
 set(CPACK_NSIS_MUI_ICON ${ICON_PATH})
 set(CPACK_NSIS_MUI_UNIICON ${ICON_PATH})
 # set(CPACK_NSIS_INSTALLED_ICON_NAME bin\\\\om_assemble.exe)
