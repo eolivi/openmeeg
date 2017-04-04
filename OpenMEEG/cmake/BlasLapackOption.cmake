@@ -40,7 +40,7 @@ endforeach()
 ### now actually include the files
 
 # include the wanted BlasLapack
-set(REQUIRED "REQUIRED")
+set(FIND_MODE "REQUIRED")
 include(Use${BLASLAPACK_IMPLEMENTATION})
 
 if (${CMAKE_PROJECT_NAME} STREQUAL "OpenMEEG" OR LAPACK_LIBRARIES)

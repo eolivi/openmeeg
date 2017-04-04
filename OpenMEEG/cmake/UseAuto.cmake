@@ -14,7 +14,7 @@ if (USE_AUTO)
         endforeach()
     endmacro()
 
-    set(REQUIRED "QUIET")
+    set(FIND_MODE "QUIET")
 
     # define here the priorities of BLAS/LAPACK to use
     if (WIN32)

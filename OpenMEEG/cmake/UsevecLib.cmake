@@ -1,7 +1,7 @@
 
 if (USE_VECLIB)
     if (APPLE)
-        find_package(vecLib ${REQUIRED})
+        find_package(vecLib ${FIND_MODE})
         if (vecLib_FOUND)
             include_directories(${vecLib_INCLUDE_DIR})
             set(LAPACK_LIBRARIES ${vecLib_LINKER_LIBS})
