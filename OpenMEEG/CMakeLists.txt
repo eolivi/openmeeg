@@ -88,7 +88,7 @@ set(OpenMEEG_INCLUDE_DIRECTORIES
     ${OpenMEEG_BINARY_DIR}/libs/OpenMEEG/include
     ${OpenMEEG_BINARY_DIR}/libs/OpenMEEGMaths/src
     ${OpenMEEG_BINARY_DIR}/libs/OpenMEEG/src
-    ${OPENMEEG_OTHER_INCLUDE_DIRECTORIES}
+    ${OpenMEEG_OTHER_INCLUDE_DIRS}
     ${matio_INCLUDE_DIRS}
 )
 

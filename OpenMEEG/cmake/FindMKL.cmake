@@ -114,7 +114,7 @@ else()
     endif()
 
 	set(MKL_LIB_DIR)
-    if (CMAKE_CL_64 AND NOT FORCE_BUILD_32BITS)
+    if (${CMAKE_SIZEOF_VOID_P} EQUAL 8 AND NOT FORCE_BUILD_32BITS)
         list(APPEND COMMANDE "--arch=intel64")
 		set(MKL_LIB_DIR "intel64")
     else()
