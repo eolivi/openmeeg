@@ -52,7 +52,7 @@ endif()
 # MSVC starts to include stddint.h only from MSVC10 !!!
 
 set(MSINTTYPES)
-if (WIN32 AND NOT CYGWIN_INSTALL_PATH)
+if (WIN32)
     include(CheckIncludeFiles)
     check_include_files(stdint.h HAVE_C99_STDINT)
     if (NOT HAVE_C99_STDINT)

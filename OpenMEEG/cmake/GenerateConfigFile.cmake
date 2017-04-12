@@ -13,7 +13,7 @@ set(INSTALL_LIB_DIR     lib${LIBSUFFIX} CACHE PATH "Installation directory for l
 set(INSTALL_BIN_DIR     bin             CACHE PATH "Installation directory for executables")
 set(INSTALL_INCLUDE_DIR include         CACHE PATH "Installation directory for header files")
 set(INSTALL_DATA_DIR    share           CACHE PATH "Installation directory for data files")
-if (WIN32 AND NOT CYGWIN)
+if (WIN32)
     set(INSTALL_DATA_DIR ${CMAKE_PROJECT_NAME} CACHE PATH "Installation directory for data files")
     set(INSTALL_CMAKE_DIR cmake CACHE PATH "Installation directory for CMake files")
 else()

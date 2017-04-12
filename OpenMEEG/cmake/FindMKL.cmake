@@ -23,7 +23,8 @@
 # SGI - SGI MPT Library
 
 
-#set(CMAKE_FIND_DEBUG_MODE 1)
+# set(CMAKE_FIND_DEBUG_MODE 1)
+
 # unset this variable defined in matio
 unset(MSVC)
 
@@ -216,8 +217,8 @@ else()
                 unset(FULLPATH_LIB CACHE)
             endforeach()
         endif()
-
     endif()
+
     # now definitions
     string(REPLACE "-libs" "-opts" COMMANDE "${COMMANDE}")
     execute_process(COMMAND ${COMMANDE} OUTPUT_VARIABLE RESULT_OPTS TIMEOUT 2 ERROR_QUIET)
@@ -227,6 +228,8 @@ else()
         message("Exectuted command: \n${COMMANDE}")
         message("Found MKL_LIBRARIES:\n${MKL_LIBRARIES} ")
         message("Found MKL_DEFINITIONS:\n${MKL_DEFINITIONS} ")
+        message("Found MKL_LIBRARY_DIR:\n${MKL_LIBRARY_DIR} ")
+        message("Found MKL_INCLUDE_DIR:\n${MKL_INCLUDE_DIR} ")
     endif()
 
     include(FindPackageHandleStandardArgs)
