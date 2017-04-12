@@ -8,30 +8,29 @@
 # directory of the project as ${OpenMEEG_SOURCE_DIR} and
 # to the root binary directory of the project as ${OpenMEEG_BINARY_DIR}.
 
+cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
+if (CMAKE_MAJOR_VERSION EQUAL 3)
+    cmake_policy(SET CMP0048 NEW)
+    cmake_policy(SET CMP0037 OLD)
+    set(PROJECT_VERSION VERSION 2.3.0.2)
+endif()
+# The second path is temporary untill these are integrated in cmake...
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_SOURCE_DIR}/cmake/FortranCInterface)
+
 #------------------------------------------------------------
 # Project Name
 #------------------------------------------------------------
 
-set(PACKAGE_VERSION_MAJOR "2")
-set(PACKAGE_VERSION_MINOR "3")
-set(PACKAGE_VERSION_PATCH "dev")
-
-# The second path is temporary untill these are integrated in cmake...
-
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake ${CMAKE_SOURCE_DIR}/cmake/FortranCInterface)
+project(OpenMEEG LANGUAGES C CXX ${PROJECT_VERSION})
 
 # The next two lines are a kludge to make rpm generation work. If you change this,
 # please check that rpm generation still works.
 
-set(CPACK_PACKAGE_VERSION_MAJOR ${PACKAGE_VERSION_MAJOR})
-set(CPACK_PACKAGE_VERSION_MINOR ${PACKAGE_VERSION_MINOR})
-set(CPACK_PACKAGE_VERSION_PATCH ${PACKAGE_VERSION_PATCH})
+set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 
 SET(VERSION_STRING "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
-
-project(OpenMEEG C CXX)
-
-cmake_minimum_required(VERSION 2.8.12 FATAL_ERROR)
 
 # By default, do not warn when built on machines using only VS Express:
 
