@@ -15,6 +15,7 @@ data_path = options.data_path
 
 ###############################################################################
 # Load data
+###############################################################################
 
 subject = 'Head1'
 cond_file = op.join(data_path, subject, subject + '.cond')
@@ -43,6 +44,7 @@ patches.load(patches_file)
 
 ###############################################################################
 # Compute forward problem (Build Gain Matrices)
+###############################################################################
 
 gauss_order = 3
 use_adaptive_integration = True
@@ -101,6 +103,7 @@ print "gain_meg_surf_one_line : %d x %d" % (gain_meg_surf_one_line.nlin(),
 
 ###############################################################################
 # Compute forward data =
+###############################################################################
 
 srcFile = op.join(data_path, subject, subject + '.srcdip')
 sources = om.Matrix(srcFile)
@@ -122,6 +125,7 @@ print "est_eeg_adjoint    : %d x %d" % (est_eeg_adjoint.nlin(),
 
 ###############################################################################
 # Example of basic manipulations
+###############################################################################
 
 v1 = om.Vertex(1., 0., 0., 0)
 v2 = om.Vertex(0., 1., 0., 1)
@@ -155,6 +159,7 @@ m2.load(ssm_file)
 
 ###############################################################################
 # Numpy interface
+###############################################################################
 
 # For a Vector
 v=hm(1,10,1,1).getcol(0)
@@ -170,7 +175,21 @@ assert((m2-om.fromarray(mat)).frobenius_norm() < 1e-15)
 #mat[0:2, 1:3] = 0
 #print mat[0:5, 0:5]
 
+###############################################################################
+# test correct increase/decrease ref counter (temporary objects)
+###############################################################################
+print("test ref count/ incr./decr.")
 
-#remove useless files
+m=om.Matrix(10,1)
+m.set(6.)
+m.info()
+M=om.asarray(m)
+M1=om.asarray(m.getcol(0))
+
+
+
+###############################################################################
+# remove useless files
+###############################################################################
 os.remove(hm_file)
 os.remove(ssm_file)
