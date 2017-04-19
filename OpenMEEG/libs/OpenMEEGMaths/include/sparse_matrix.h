@@ -77,7 +77,7 @@ namespace OpenMEEG {
             om_assert(j < ncol());
             const_iterator it = m_tank.find(std::make_pair(i, j));
             if (it != m_tank.end()) return it->second;
-            else return 0.0;
+            else return 0.0; // TODO should return default value set by set(d)
         }
 
         inline double& operator()( size_t i, size_t j ) {

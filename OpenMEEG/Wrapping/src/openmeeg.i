@@ -70,13 +70,11 @@
                 return(NULL);
             }
 
-            /* std::cerr << "VV = " << *vec << std::endl; TODO */
 
             /* array object */
             PyArrayObject* matarray = 0;
 
-            /* Get the size of the Vector
-             */
+            /* Get the size of the Vector */
             const npy_intp ndims = 1;
             npy_intp ar_dim[] = { static_cast<npy_intp>(vec->size()) };
 

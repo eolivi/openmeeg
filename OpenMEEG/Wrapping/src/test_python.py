@@ -4,6 +4,7 @@ import openmeeg as om
 import os
 from os import path as op
 from optparse import OptionParser
+import numpy as np
 
 data_path = op.dirname(op.abspath(__file__))
 parser = OptionParser()
@@ -68,7 +69,6 @@ gain_eeg_dip = om.GainEEG(hminv, dsm, h2em)
 gain_adjoint_eeg_dip = om.GainEEGadjoint(geom, dipoles, hm, h2em)
 gain_adjoint_eeg_meg_dip = om.GainEEGMEGadjoint(geom, dipoles,
                                                 hm, h2em, h2mm, ds2mm)
-
 
 print "hm                  : %d x %d" % (hm.nlin(), hm.ncol())
 print "hminv               : %d x %d" % (hminv.nlin(), hminv.ncol())
@@ -186,6 +186,80 @@ m.info()
 M=om.asarray(m)
 M1=om.asarray(m.getcol(0))
 
+
+
+
+
+
+
+# Consider the following code:
+
+v=hm(1,10,1,1).getcol(0)
+vec = om.asarray(v)
+print(vec)
+
+# This works correctly. But the "equivalent" code:
+
+m = hm(1,10,1,1)
+print(om.asarray(m.getcol(0)))
+
+assert(np.linalg.norm(vec-om.asarray(m.getcol(0))) < 1e-15) #ERROR
+
+
+
+
+
+
+
+
+
+###### en affichant les constructor destructor:
+# sur ipython
+#%reset
+
+    ## 1 etrange
+m=om.Matrix(10,1)
+#constructor called 0x55f199c0afc0
+m=3
+#desturctor called 0x55f199c0afc0
+# OK ! c'est bien.
+# en revanche :
+m=om.Matrix(10,1)
+#constructor called 0x55f199c0e4a0
+m
+#<openmeeg.Matrix; proxy of <Swig Object of type 'OpenMEEG::Matrix *' at 0x7f2939d7ad20> >
+m=3
+# RIEN ! pas d'appel au destructor... etrange... en fait des que l'on execute
+# simplement 'm', il retourne (a python) l'objet lui meme et enleve a m sa
+# responsabilité
+
+    ## 2 OK all perfect
+m=om.Matrix(10,10)
+#Linop constructor 0x5599b0d11790
+#  Matrix constructor 0x5599b0d11790
+m1=m
+# destructor called 0x5599b0c0ebc0 (because m1 existed already)
+m=1
+# no destructor called
+m1=4
+#  Matrix destructor 0x5599b0d11790
+#destructor called 0x5599b0d11790
+# OK all perfect
+
+    ## 3
+m=om.Matrix(10,10)
+mm=om.asarray(m)
+#mm= 0., 0., ...
+m.set(9.);
+#mm= 9., 9., ...
+
+v=m.getcol(0)
+vv=om.asarray(v)
+v.set(4.);
+v.info();
+
+w=om.asarray(m.getcol(0)+v)
+print w
 
 
 ###############################################################################

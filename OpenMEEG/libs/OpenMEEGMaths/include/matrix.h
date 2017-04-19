@@ -69,10 +69,14 @@ namespace OpenMEEG {
 
     public:
 
-        Matrix(): LinOp(0,0,FULL,2),value() { }
-        Matrix(const char* fname): LinOp(0,0,FULL,2),value() { this->load(fname); }
-        Matrix(const size_t M,const size_t N): LinOp(M,N,FULL,2),value(new LinOpValue(N*M)) { }
-        Matrix(const Matrix& A,const DeepCopy): LinOp(A.nlin(),A.ncol(),FULL,2),value(new LinOpValue(A.size(),A.data())) { }
+        Matrix(): LinOp(0,0,FULL,2),value() { std::cout << "  Matrix constructor " << static_cast<void *> (this) << std::endl;}
+        Matrix(const char* fname): LinOp(0,0,FULL,2),value() { this->load(fname);  std::cout << "  Matrix constructor " << static_cast<void *> (this) << std::endl;}
+        Matrix(const size_t M,const size_t N): LinOp(M,N,FULL,2),value(new LinOpValue(N*M)) { std::cout << "  Matrix constructor " << static_cast<void *> (this) << std::endl; }
+        Matrix(const Matrix& A,const DeepCopy): LinOp(A.nlin(),A.ncol(),FULL,2),value(new LinOpValue(A.size(),A.data())) { std::cout << "  Matrix constructor " << static_cast<void *> (this) << std::endl; }
+
+        Matrix(const Matrix& A): LinOp(A.nlin(),A.ncol(),FULL,2),value(A.value) { std::cout << "  Matrix copy constructor " << static_cast<void *> (this) << std::endl; }
+
+        ~Matrix() { std::cout << "  Matrix destructor " << static_cast<void *> (this) << std::endl;  }
 
         explicit Matrix(const SymMatrix& A);
         explicit Matrix(const SparseMatrix& A);
@@ -119,7 +123,7 @@ namespace OpenMEEG {
         Vector getlin(size_t i) const;
         void setlin(size_t i, const Vector& v);
 
-        const Matrix& set(const double d);
+        void set(const double d);
 
         Matrix operator*(const Matrix& B) const;
         Matrix operator*(const SymMatrix& B) const;

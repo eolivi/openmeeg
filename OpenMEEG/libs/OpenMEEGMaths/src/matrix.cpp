@@ -51,9 +51,9 @@ knowledge of the CeCILL-B license and that you accept its terms.
 
 namespace OpenMEEG {
 
-    const Matrix& Matrix::set(const double d) {
-        for(size_t i=0;i<size();i++) data()[i]=d;
-        return *this;
+    void Matrix::set(const double d) {
+        for(size_t i=0;i<size();i++)
+            data()[i]=d;
     }
 
     Matrix::Matrix(const SymMatrix& A): LinOp(A.nlin(),A.ncol(),FULL,2),value(new LinOpValue(size())) {
