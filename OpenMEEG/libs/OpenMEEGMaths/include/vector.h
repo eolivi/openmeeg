@@ -55,9 +55,9 @@ namespace OpenMEEG {
 
     class OPENMEEGMATHS_EXPORT Vector: public LinOp {
 
+    public:
         utils::RCPtr<LinOpValue> value;
 
-    public:
 
         Vector(): LinOp(0,1,FULL,1),value() { std::cout << "  Vector constructor " << static_cast<void *> (this) << std::endl; }
 
@@ -66,7 +66,7 @@ namespace OpenMEEG {
 
         Vector(const Vector& A): LinOp(A.nlin(),1,FULL,1),value(A.value) { std::cout << "  Vector copy constructor " << static_cast<void *> (this) << std::endl; }
 
-        //~Vector() { std::cout << "  Vector destructor " << static_cast<void *> (this) << std::endl;  }
+        ~Vector() { std::cout << "  Vector destructor " << static_cast<void *> (this) << std::endl;  }
 
         explicit Vector(Matrix& A);
         explicit Vector(SymMatrix& A);

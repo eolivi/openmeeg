@@ -21,9 +21,9 @@ namespace utils {
         T* operator->() const { return pointee;  }
         T& operator*()  const { return *pointee; }
 
+        T* pointee;
     private:
 
-        T* pointee;
 
         void init();
     };

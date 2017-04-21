@@ -64,14 +64,30 @@
             return PyArray_Return((PyArrayObject*) matarray);
         }
 
+        class PyArrayObject2: public PyArrayObject {
+            OpenMEEG::Vector vec;
+        public:
+            PyArrayObject2(const PyArrayObject2& copy): PyArrayObject(copy), vec(copy.vec) {
+                std::cout << "copy constructor de PyArrayObject2" << std::endl;
+            }
+            void setO(OpenMEEG::Vector* vec) {
+                std::cout << "Il est entre par ici" << std::endl;
+                this->vec = OpenMEEG::Vector(*vec);
+            }
+        };
+    
         static PyObject* asarray(OpenMEEG::Vector* vec) {
             if (!vec) {
                 PyErr_SetString(PyExc_RuntimeError, "Zero pointer passed instead of valid Vector struct.");
                 return(NULL);
             }
 
+            // std::cerr << "asarray: vec = " << *vec << std::endl; /*TODO */
+            //vec->value.pointee->addReference();
+            /* Vector vec2(*vec); does not work */
 
             /* array object */
+            // PyArrayObject2* matarray = 0;
             PyArrayObject* matarray = 0;
 
             /* Get the size of the Vector */
@@ -79,6 +95,8 @@
             npy_intp ar_dim[] = { static_cast<npy_intp>(vec->size()) };
 
             /* create numpy array */
+            // matarray = (PyArrayObject2*) PyArray_NewFromDescr(&PyArray_Type,PyArray_DescrFromType(NPY_DOUBLE),ndims,ar_dim,NULL,static_cast<void*>(vec->data()),NPY_ARRAY_FARRAY,NULL);
+            // matarray->setO(vec);
             matarray = (PyArrayObject*) PyArray_NewFromDescr(&PyArray_Type,PyArray_DescrFromType(NPY_DOUBLE),ndims,ar_dim,NULL,static_cast<void*>(vec->data()),NPY_ARRAY_FARRAY,NULL);
 
             return PyArray_Return(matarray);
@@ -111,6 +129,7 @@ def loadmat(fname):
     except:
         import h5py
         return h5py.File(fname)['linop'].value.T
+
 }
 
 %include "numpy.i"
@@ -146,17 +165,31 @@ namespace std {
     %template(vector_pvertex) vector<OpenMEEG::Vertex *>;
     %template(vector_triangle) vector<OpenMEEG::Triangle>;
     %template(vector_mesh) vector<OpenMEEG::Mesh>;
+    %template(vector_domain) vector<OpenMEEG::Domain>;
     %template(vector_string) vector<std::string>;
     %template(vector_interface) vector<OpenMEEG::Interface>;
 }
 
 namespace OpenMEEG {
-    %typedef std::vector<OpenMEEG::Vertex> Vertices;
-    %typedef std::vector<OpenMEEG::Vertex *> PVertices;
-    %typedef std::vector<OpenMEEG::Triangle> Triangles;
-    %typedef std::vector<OpenMEEG::Mesh> Meshes;
+//    %typedef std::vector<OpenMEEG::Vertex> Vertices;
+//    %typedef std::vector<OpenMEEG::Vertex *> PVertices;
+//    %typedef std::vector<OpenMEEG::Triangle> Triangles;
+//    %typedef std::vector<OpenMEEG::Mesh> Meshes;
+//    %typedef std::vector<OpenMEEG::Domain> Domains;
+
+    // %ignore Vector::~Vector; /* // ignoring C++ destructor */ ne fonctionne pas...
+    // %nodefaultdtor Vector;   /* // don't generate a destructor */
+    %feature("ref")   RCObject "$this->addReference();"
+    %feature("unref") RCObject "$this->removeReference();"
 }
 
+%feature("ref")   RCObject "$this->addReference();"
+%feature("unref") RCObject "$this->removeReference();"
+%feature("ref")   OpenMEEG::RCObject "$this->addReference();"
+%feature("unref") OpenMEEG::RCObject "$this->removeReference();"
+
+
+%include <RC.H>
 %include <vect3.h>
 %include <vertex.h>
 %include <triangle.h>
@@ -199,6 +232,32 @@ namespace OpenMEEG {
     void setvalue(unsigned int i, double d) {
         (*($self))(i)=d;
     }
+    /* essai d extension mais ce nest pas satisfaisant:
+     >W=(m.getcol(0)+v+v).asarray()
+     asarray: vec = 13 13 13 13 13 13 13 13 13 13
+     >W
+     array([  4.64148468e-310,   4.64148465e-310,   6.92064265e-310,
+         6.92064265e-310,   6.92065376e-310,   6.92065376e-310,
+         6.92065376e-310,   6.92064220e-310,   6.92064220e-310,
+         6.92064220e-310])
+     */
+    PyObject* asarray() {
+        std::cerr << "asarray: vec = " << *($self) << std::endl; /*TODO */
+        ($self)->value.pointee->addReference();
+        /* Vector vec2(*vec); does not work */
+
+        /* array object */
+        PyArrayObject* matarray = 0;
+
+        /* Get the size of the Vector */
+        const npy_intp ndims = 1;
+        npy_intp ar_dim[] = { static_cast<npy_intp>(($self)->size()) };
+
+        /* create numpy array */
+        matarray = (PyArrayObject*) PyArray_NewFromDescr(&PyArray_Type,PyArray_DescrFromType(NPY_DOUBLE),ndims,ar_dim,NULL,static_cast<void*>(($self)->data()),NPY_ARRAY_FARRAY,NULL);
+
+        return PyArray_Return(matarray);
+    }
 }
 
 %extend OpenMEEG::Matrix {
@@ -210,7 +269,7 @@ namespace OpenMEEG {
 %extend OpenMEEG::Mesh {
     // TODO almost.. if I do: m.name() I get:
     // <Swig Object of type 'std::string *' at 0x2c92ea0>
-    const char* __str__() {
+    std::string __str__() {
         return ($self)->name().c_str();
     }
 }
@@ -226,3 +285,15 @@ instead we have a pointer to it:
 static PyObject* asarray(OpenMEEG::Matrix* _mat);
 static PyObject* asarray(OpenMEEG::Vector* _vec);
 static OpenMEEG::Matrix fromarray(PyObject* _mat);
+
+%pythoncode{
+import numpy as np
+class ND(np.ndarray):
+    def __init__(self, a):
+        print "ici"
+        np.ndarray(a)
+        self.vec = om.Vector()
+    def setO(self,vec):
+        print "la"
+        self.vec = om.Vector(vec)
+}

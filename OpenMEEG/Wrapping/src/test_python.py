@@ -248,6 +248,13 @@ m1=4
 
     ## 3
 m=om.Matrix(10,10)
+M=om.asarray(m)
+m.set(4)
+m=2 # destructor of m called.. thus M ... failed
+
+
+    ## 4
+m=om.Matrix(10,10)
 mm=om.asarray(m)
 #mm= 0., 0., ...
 m.set(9.);
