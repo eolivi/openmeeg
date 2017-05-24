@@ -247,14 +247,15 @@ m1=4
 # OK all perfect
 
 print('        ## 3 ')
-m=om.Matrix(10,10)
+m=om.Matrix(10**3,10**3)
 M=om.asarray(m)
 m.set(4)
 m=2 # destructor of m called.. thus M ... failed
+M
 
 
 print('        ## 4 ')
-m=om.Matrix(10,10)
+m=om.Matrix(10**3, 10**3)
 mm=om.asarray(m)
 #mm= 0., 0., ...
 m.set(9.);

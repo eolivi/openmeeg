@@ -58,8 +58,8 @@ namespace utils {
     class OPENMEEGMATHS_EXPORT RCObject {
     public:
 
-        void addReference()      { ++refCount;                     }
-        void removeReference()   { if (--refCount==0) delete this; }
+        void addReference()      { std::cout << "addReference " << ++refCount  << std::endl;}
+        void removeReference()   { if (--refCount==0) {delete this; std::cout << "removeLastReference"; }else{std::cout << "removeReference " << refCount << std::endl; }}
 
         void markUnsharable()    { shareable = false;              }
         bool isShareable() const { return shareable;               }

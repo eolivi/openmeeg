@@ -16,6 +16,12 @@
 %include <std_string.i>
 %include <std_vector.i>
 
+%typemap(memberin) PyObject * {
+  Py_DecRef($1);
+  $1 = $input;
+  Py_IncRef($1);
+}
+
 %{
     #define SWIG_FILE_WITH_INIT
     #include <vect3.h>
@@ -60,6 +66,7 @@
 
             /* create numpy array */
             matarray = (PyArrayObject*) PyArray_NewFromDescr(&PyArray_Type, PyArray_DescrFromType(NPY_DOUBLE), ndims, ar_dim, NULL, (void *) mat->data(),NPY_ARRAY_FARRAY,NULL);
+            Py_IncRef((PyObject *)matarray);
 
             return PyArray_Return((PyArrayObject*) matarray);
         }
@@ -170,6 +177,12 @@ namespace std {
     %template(vector_interface) vector<OpenMEEG::Interface>;
 }
 
+%typemap(out) OpenMEEG::Matrix &
+{
+    if(result) { /* suppress unused warning */ }
+    Py_INCREF($self);
+    $result = $self;
+}
 namespace OpenMEEG {
 //    %typedef std::vector<OpenMEEG::Vertex> Vertices;
 //    %typedef std::vector<OpenMEEG::Vertex *> PVertices;
@@ -179,17 +192,34 @@ namespace OpenMEEG {
 
     // %ignore Vector::~Vector; /* // ignoring C++ destructor */ ne fonctionne pas...
     // %nodefaultdtor Vector;   /* // don't generate a destructor */
-    %feature("ref")   RCObject "$this->addReference();"
-    %feature("unref") RCObject "$this->removeReference();"
+    // %feature("ref")   RCObject "$this->addReference();"
+    // %feature("unref") RCObject "$this->removeReference();"
+    %refobject   RCObject "$this->addReference();"
+    %unrefobject RCObject "$this->removeReference();"
 }
 
+// TODO ici
 %feature("ref")   RCObject "$this->addReference();"
 %feature("unref") RCObject "$this->removeReference();"
-%feature("ref")   OpenMEEG::RCObject "$this->addReference();"
-%feature("unref") OpenMEEG::RCObject "$this->removeReference();"
+//%feature("ref")   OpenMEEG::RCObject "$this->addReference();"
+//%feature("unref") OpenMEEG::RCObject "$this->removeReference();"
 
+//
+// using the %refobject/%unrefobject directives you can activate the
+// reference counting for RCObj and all its descendents at once
+//
+
+// %refobject   RCObject "$this->addReference();"
+// %unrefobject RCObject "$this->removeReference();"
 
 %include <RC.H>
+
+// #if defined(SWIGPYTHON)
+// %extend_smart_pointer(utils::RCPtr<A>);
+// %template(RCPtr_A) utils::RCPtr<A>;
+// #endif
+
+
 %include <vect3.h>
 %include <vertex.h>
 %include <triangle.h>
@@ -208,6 +238,12 @@ namespace OpenMEEG {
 %include <assemble.h>
 %include <gain.h>
 %include <forward.h>
+
+// nothing works
+// %newobject OpenMEEG::Matrix::getcol(size_t i);
+// %newobject OpenMEEG::Vector::Vector();
+// %newobject OpenMEEG::Vector::asarray();
+// %newobject OpenMEEG::Matrix::asarray(OpenMEEG::Matrix* mat);
 
 %extend OpenMEEG::Vertex {
     // TODO almost.. if I do: v.index() I get:
@@ -242,8 +278,9 @@ namespace OpenMEEG {
          6.92064220e-310])
      */
     PyObject* asarray() {
-        std::cerr << "asarray: vec = " << *($self) << std::endl; /*TODO */
-        ($self)->value.pointee->addReference();
+         /*std::cerr << "asarray: vec = " << *($self) << std::endl;TODO */
+        // only this works
+        /* ($self)->value.pointee->addReference(); */
         /* Vector vec2(*vec); does not work */
 
         /* array object */
@@ -285,6 +322,7 @@ instead we have a pointer to it:
 static PyObject* asarray(OpenMEEG::Matrix* _mat);
 static PyObject* asarray(OpenMEEG::Vector* _vec);
 static OpenMEEG::Matrix fromarray(PyObject* _mat);
+// %newobject asarray(OpenMEEG::Vector* _vec);
 
 %pythoncode{
 import numpy as np
