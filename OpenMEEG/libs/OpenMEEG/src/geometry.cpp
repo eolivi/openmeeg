@@ -161,7 +161,8 @@ namespace OpenMEEG {
         if (condFileName != "") {
             geoR.read_cond(condFileName);
             has_cond_ = true;
-            //mark meshes that touch the 0-cond
+            check_conductivities();
+            // mark meshes that touch the 0-cond
             mark_current_barrier();
         }
 
@@ -379,7 +380,17 @@ namespace OpenMEEG {
         }
     }
 
-    //mark all meshes which touch domains with 0 conductivity
+    // ensure that all domain's conductivities were defined
+    void Geometry::check_conductivities() {
+        for (Domains::iterator dit = domains_.begin(); dit != domains_.end(); ++dit) {
+            if (dit->sigma() < 0.0) {
+                throw OpenMEEG::BadDomain("No conductivity provided");
+            }
+        }
+        return;
+    }
+
+    // mark all meshes which touch domains with 0 conductivity
     void Geometry::mark_current_barrier() {
 
         //figure out the connectivity of meshes
@@ -503,5 +514,6 @@ namespace OpenMEEG {
             }
             geo_group_.push_back(gg);
         }
+
     }
 }
