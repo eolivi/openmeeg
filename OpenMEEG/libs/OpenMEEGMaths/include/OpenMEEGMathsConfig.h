@@ -39,7 +39,7 @@ knowledge of the CeCILL-B license and that you accept its terms.
 
 #pragma once
 
-//  cmake configuration.
+// cmake configuration.
 
 #include <OpenMEEGConfigure.h>
 #include <OpenMEEGMaths_Export.h>
@@ -81,6 +81,8 @@ typedef int BLAS_INT;
 #include <BlasLapackImplementations/OpenMEEGMathsBlasLapackConfig.h>
 #elif defined(USE_MKL)
 #include <BlasLapackImplementations/OpenMEEGMathsMKLConfig.h>
+#elif defined(USE_ACML)
+#include <BlasLapackImplementations/OpenMEEGMathsACMLConfig.h>
 #elif defined(USE_ATLAS)
 #include <BlasLapackImplementations/OpenMEEGMathsAtlasConfig.h>
 #elif defined(USE_OPENBLAS)
@@ -94,7 +96,6 @@ typedef int BLAS_INT;
 //#define inline __forceinline
 //#define inline __attribute__((always_inline))
 //#define inline __attribute__((weak)) inline
-
 
 #define DPOTF2 LAPACK(dpotf2,DPOTF2)
 #define DSPEVD LAPACK(dspevd,DSPEVD)

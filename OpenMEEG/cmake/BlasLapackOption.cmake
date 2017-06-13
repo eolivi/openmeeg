@@ -1,5 +1,6 @@
 
 set(Atlas    USE_ATLAS)
+set(ACML     USE_ACML)
 set(OpenBLAS USE_OPENBLAS)
 set(MKL      USE_MKL)
 set(LAPACK   USE_LAPACK)
@@ -17,7 +18,7 @@ set(LIST_IMPL "Auto" "MKL" "OpenBLAS" "LAPACK")
 if (APPLE)
     set(LIST_IMPL ${LIST_IMPL} "vecLib")
 elseif(UNIX)
-    set(LIST_IMPL ${LIST_IMPL} "Atlas")
+    set(LIST_IMPL ${LIST_IMPL} "Atlas" "ACML")
 endif()
 
 set(BLASLAPACK_IMPLEMENTATION_DOCSTRING "Choose the proper Blas/Lapack implementation: ${LIST_IMPL}")
@@ -27,13 +28,14 @@ set(BLASLAPACK_IMPLEMENTATION "${BLASLAPACK_IMPLEMENTATION_DEFAULT}" CACHE STRIN
 set_property(CACHE BLASLAPACK_IMPLEMENTATION PROPERTY STRINGS ${LIST_IMPL})
 
 # Ensure that only one lapack implementation is selected by clearing all variable before setting the one chosen.
-foreach (i Auto Atlas OpenBLAS MKL LAPACK vecLib)
+foreach (i Auto Atlas ACML OpenBLAS MKL LAPACK vecLib)
     unset(${${i}})
 endforeach()
+# set the USE_${BLASLAPACK_IMPLEMENTATION}
 set(${${BLASLAPACK_IMPLEMENTATION}} ON)
 
 # unset unused variables
-foreach (i Auto Atlas OpenBLAS MKL LAPACK vecLib)
+foreach (i Auto Atlas ACML OpenBLAS MKL LAPACK vecLib)
     unset(${i})
 endforeach()
 
@@ -48,7 +50,7 @@ if (${CMAKE_PROJECT_NAME} STREQUAL "OpenMEEG" OR LAPACK_LIBRARIES)
     message(STATUS "Lapack package: ${LAPACK}: ${LAPACK_LIBRARIES}")
 
     # Detect Fortran to C interface.
-    if (NOT USE_MKL AND NOT WIN32 AND NOT USE_OPENBLAS)
+    if (NOT USE_MKL AND NOT WIN32 AND NOT USE_OPENBLAS AND NOT USE_ACML)
         include(FortranCInterface)
         FortranCInterface_HEADER(FC.h MACRO_NAMESPACE "FC_" FROM_LIBRARY blas[daxpy] HINTS ${lapack_DIR}/lib)
     endif()

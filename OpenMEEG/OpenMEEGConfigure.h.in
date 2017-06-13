@@ -11,6 +11,7 @@
 #cmakedefine HAVE_LAPACK
 
 #cmakedefine USE_ATLAS
+#cmakedefine USE_ACML
 #cmakedefine USE_MKL
 #cmakedefine USE_OPENBLAS
 #cmakedefine USE_LAPACK

@@ -36,6 +36,7 @@ function(OpenMEEG_project)
         -DUSE_CGAL:BOOL=${USE_CGAL}
         -DAPPLE_STANDALONE:BOOL=${APPLE_STANDALONE}
         -DMKL_USE_sdl:BOOL=${MKL_USE_sdl}
+        -DACML_DIR:BOOL=${ACML_DIR}
         -DMKL_USE_interface:STRING=${MKL_USE_interface}
         -DMKL_USE_parallel:BOOL=${MKL_USE_parallel}
         -DUSE_PROGRESSBAR:BOOL=${USE_PROGRESSBAR}
