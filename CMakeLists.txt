@@ -66,6 +66,6 @@ if (USE_OPENBLAS AND WIN32)
     include(installOpenBLAS)
 endif()
 
-subprojects(${MSINTTYPES} zlib ${VTK_} hdf5 matio ${LAPACK} OpenMEEG)
+subprojects(${MSINTTYPES} ZLIB ${VTK_} HDF5 MATIO ${LAPACK} OpenMEEG)
 
 include(Packaging)

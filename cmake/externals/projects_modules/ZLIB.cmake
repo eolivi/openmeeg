@@ -7,24 +7,23 @@
 #  the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 #  PURPOSE.
 
-macro(hdf5_find_package)
+macro(zlib_find_package)
 #   Do nothing let OpenMEEG do the work.
 endmacro()
 
-function(hdf5_project)
+function(zlib_project)
 
     # Prepare the project and list dependencies
 
-    EP_Initialisation(hdf5 BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
-    EP_SetDependencies(${ep}_dependencies ${MSINTTYPES} zlib)
-
+    EP_Initialisation(ZLIB BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
+    EP_SetDependencies(${ep}_dependencies "${MSINTTYPES}")
+      
     # Define repository where get the sources
 
     if (NOT DEFINED ${ep}_SOURCE_DIR)
-        set(location GIT_REPOSITORY "${GIT_PREFIX}github.com/openmeeg/hdf5-matio.git")
-        #set(location
-        #    URL "http://www.hdfgroup.org/ftp/HDF5/releases/hdf5-1.8.12/src/hdf5-1.8.12.tar.bz2"
-        #    URL_MD5 "03ad766d225f5e872eb3e5ce95524a08")
+        #set(location GIT_REPOSITORY "${GIT_PREFIX}github.com/madler/zlib.git" GIT_TAG v1.2.11)
+        set(location
+            URL "http://zlib.net/zlib-1.2.11.tar.gz" URL_MD5 "1c9f62f0778697a09d36121ead88e08e")
     endif()
 
     # set compilation flags
@@ -36,31 +35,23 @@ function(hdf5_project)
     set(cmake_args
         ${ep_common_cache_args}
         ${ep_optional_args}
-        -DHDF5_ENABLE_Z_LIB_SUPPORT:BOOL=ON
-        ${zlib_CMAKE_FLAGS}
         -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
         -DCMAKE_C_FLAGS:STRING=${${ep}_c_flags}
-        -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER}
         -DCMAKE_SHARED_LINKER_FLAGS:STRING=${${ep}_shared_linker_flags}  
         -DBUILD_SHARED_LIBS:BOOL=${BUILD_SHARED_LIBS_${ep}}
-        -DHDF5_INSTALL_LIB_DIR:STRING=${INSTALL_LIB_DIR}
-        -DBUILD_TESTING:BOOL=OFF
+        -DINSTALL_LIB_DIR:PATH=${INSTALL_LIB_DIR}
     )
 
     # Check if patch has to be applied
 
-    ep_GeneratePatchCommand(${ep} PATCH_COMMAND hdf5-config.patch)
+    ep_GeneratePatchCommand(${ep} PATCH_COMMAND zlib.patch)
 
     # Add external-project
 
-    #set(tag 1.8.14)
-    set(tag master)
     ExternalProject_Add(${ep}
         ${ep_dirs}
         ${location}
         ${PATCH_COMMAND}
-        GIT_TAG ${tag}
-        UPDATE_COMMAND ${GIT_BIN} pull
         CMAKE_GENERATOR ${gen}
         CMAKE_ARGS ${cmake_args}
         DEPENDS ${${ep}_dependencies}
@@ -69,10 +60,7 @@ function(hdf5_project)
     # Set variable to provide infos about the project
 
     ExternalProject_Get_Property(${ep} install_dir)
-    if (NOT WIN32)
-        set(HDF5_CMAKE_INSTALL_DIR share/cmake)
-    endif()
-    set(${ep}_CMAKE_FLAGS -DHDF5_DIR:FILEPATH=${install_dir}/${HDF5_CMAKE_INSTALL_DIR} PARENT_SCOPE)
+    set(${ep}_CMAKE_FLAGS -D${ep}_DIR:FILEPATH=${install_dir} PARENT_SCOPE)
 
     # Add custom targets
 

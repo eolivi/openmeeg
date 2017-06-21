@@ -16,7 +16,7 @@ function(VTK_project)
     # Prepare the project and list dependencies
 
     EP_Initialisation(VTK BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
-    EP_SetDependencies(${ep}_dependencies zlib)
+    EP_SetDependencies(${ep}_dependencies ZLIB)
 
     # Define repository where get the sources
 
@@ -40,7 +40,7 @@ function(VTK_project)
 
     set(cmake_args
         ${ep_common_cache_args}
-        ${zlib_CMAKE_FLAGS}
+        ${ZLIB_CMAKE_FLAGS}
         -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
         -DCMAKE_C_FLAGS:STRING=${${ep}_c_flags}
         -DCMAKE_CXX_FLAGS:STRING=${${ep}_cxx_flags}

@@ -8,7 +8,7 @@ function(ep_GeneratePatchCommand ep OutVar)
     #   If the source directory of the project does not exist all patches must be applied.
 
     foreach (patch ${ARGN})
-        set(PATCHES_TO_APPLY ${PATCHES_TO_APPLY} ${CMAKE_SOURCE_DIR}/patches/${patch})
+        set(PATCHES_TO_APPLY ${PATCHES_TO_APPLY} ${CMAKE_SOURCE_DIR}/cmake/patches/${patch})
     endforeach()
 
     #   If the source directory of the project already exists, prune the patch list
@@ -31,6 +31,9 @@ function(ep_GeneratePatchCommand ep OutVar)
     set(PATCH_COMMAND)
     if (NOT "${PATCHES_TO_APPLY}" STREQUAL "")
         set(PATCH_COMMAND PATCH_COMMAND git apply --ignore-whitespace ${PATCHES_TO_APPLY})
+        if (EXISTS ${CMAKE_SOURCE_DIR}/${ep}/.git)
+            set(PATCH_COMMAND PATCH_COMMAND cmake -E chdir ${CMAKE_SOURCE_DIR}/${ep} ${patch})
+        endif()
     endif()
 
     set(${OutVar} ${PATCH_COMMAND} PARENT_SCOPE)
